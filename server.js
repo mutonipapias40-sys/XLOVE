@@ -1,49 +1,160 @@
 const express = require("express");
+const { Pool } = require("pg");
+const bcrypt = require("bcryptjs");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
+// Allow the XLOVE website to communicate with this backend
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://xlove-as4y.onrender.com");
+  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
+// PostgreSQL connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
+// Create users table
+async function createUsersTable() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      username VARCHAR(50) NOT NULL,
+      email VARCHAR(255) UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  console.log("Users table is ready.");
+}
+
+// Test backend
 app.get("/", (req, res) => {
   res.json({
     message: "XLOVE backend is running ❤️"
   });
 });
 
-// Test registration endpoint
-app.post("/api/register", (req, res) => {
-  const { username, email, password } = req.body;
+// Register
+app.post("/api/register", async (req, res) => {
+  try {
+    const { username, email, password } = req.body;
 
-  if (!username || !email || !password) {
-    return res.status(400).json({
-      message: "Username, email and password are required."
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        message: "Username, email and password are required."
+      });
+    }
+
+    const existingUser = await pool.query(
+      "SELECT id FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({
+        message: "An account with this email already exists."
+      });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    await pool.query(
+      "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)",
+      [username, email, passwordHash]
+    );
+
+    res.status(201).json({
+      message: "Account created successfully."
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Server error. Please try again."
     });
   }
-
-  res.status(201).json({
-    message: "Registration request received successfully.",
-    username,
-    email
-  });
 });
 
-// Test login endpoint
-app.post("/api/login", (req, res) => {
-  const { email, password } = req.body;
+// Login
+app.post("/api/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-  if (!email || !password) {
-    return res.status(400).json({
-      message: "Email and password are required."
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Email and password are required."
+      });
+    }
+
+    const result = await pool.query(
+      "SELECT id, username, email, password_hash FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({
+        message: "Invalid email or password."
+      });
+    }
+
+    const user = result.rows[0];
+
+    const passwordMatch = await bcrypt.compare(
+      password,
+      user.password_hash
+    );
+
+    if (!passwordMatch) {
+      return res.status(401).json({
+        message: "Invalid email or password."
+      });
+    }
+
+    res.json({
+      message: "Login successful.",
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email
+      }
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Server error. Please try again."
     });
   }
-
-  res.json({
-    message: "Login request received successfully.",
-    email
-  });
 });
 
-app.listen(PORT, () => {
-  console.log(`XLOVE backend running on port ${PORT}`);
-});
+// Start server
+async function startServer() {
+  try {
+    await createUsersTable();
+
+    app.listen(PORT, () => {
+      console.log(`XLOVE backend running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Database connection failed:", error);
+    process.exit(1);
+  }
+}
+
+startServer();
