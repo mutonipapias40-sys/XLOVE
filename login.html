@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - XLOVE</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #111, #ff2d75);
+        }
+
+        .login-box {
+            width: 90%;
+            max-width: 400px;
+            background: white;
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff2d75;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #ff2d75;
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #e52265;
+        }
+
+        .join {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .join a {
+            color: #ff2d75;
+            text-decoration: none;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-box">
+
+        <div class="logo">XLOVE</div>
+
+        <p class="subtitle">Welcome back ❤️</p>
+
+        <form>
+            <input type="email" placeholder="Email address" required>
+
+            <input type="password" placeholder="Password" required>
+
+            <button type="submit">Log In</button>
+        </form>
+
+        <div class="join">
+            Don't have an account?
+            <a href="join.html">Join XLOVE</a>
+        </div>
+
+    </div>
+
+</body>
+</html>
