@@ -34,10 +34,6 @@ const pool = new Pool({
     rejectUnauthorized: false
   }
 });
-  ssl: {
-    rejectUnauthorized: false
-  }
-});
 
 // Create users table
 async function createUsersTable() {
