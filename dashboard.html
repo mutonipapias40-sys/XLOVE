@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XLOVE Dashboard</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fff, #fff0f6);
+        }
+
+        header {
+            background: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+
+        .logo {
+            font-size: 30px;
+            font-weight: bold;
+            color: #ff2d75;
+        }
+
+        .logout {
+            border: none;
+            background: #ff2d75;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 60px auto;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .welcome {
+            background: white;
+            padding: 45px 25px;
+            border-radius: 25px;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            color: #111827;
+            margin-bottom: 15px;
+        }
+
+        .username {
+            color: #ff2d75;
+        }
+
+        p {
+            color: #6b7280;
+            font-size: 17px;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">XLOVE</div>
+
+        <button class="logout" onclick="logout()">
+            Log Out
+        </button>
+    </header>
+
+    <main>
+        <div class="welcome">
+            <h1>
+                Welcome, <span id="username" class="username">User</span>! 👋
+            </h1>
+
+            <p>
+                Welcome to your XLOVE dashboard.
+            </p>
+        </div>
+    </main>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem("xloveUser"));
+
+        if (user && user.username) {
+            document.getElementById("username").textContent = user.username;
+        }
+
+        function logout() {
+            localStorage.removeItem("xloveUser");
+            window.location.href = "index.html";
+        }
+    </script>
+
+</body>
+</html>
