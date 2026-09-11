@@ -1,0 +1,192 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - XLOVE</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fff, #fff0f6);
+        }
+
+        header {
+            background: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 30px;
+            font-weight: bold;
+            color: #ff2d75;
+        }
+
+        nav {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: #ff2d75;
+        }
+
+        .logout {
+            border: none;
+            background: #ff2d75;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .notifications-card {
+            background: white;
+            padding: 35px;
+            border-radius: 25px;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            color: #111827;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .notification {
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .notification h2 {
+            font-size: 16px;
+            color: #111827;
+            margin-bottom: 7px;
+        }
+
+        .notification p {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .time {
+            display: block;
+            margin-top: 6px;
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        @media (max-width: 700px) {
+            header {
+                justify-content: center;
+            }
+
+            nav {
+                width: 100%;
+            }
+
+            .notifications-card {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+
+        <div class="logo">XLOVE</div>
+
+        <nav>
+            <a href="dashboard.html">Home</a>
+            <a href="profile.html">My Profile</a>
+            <a href="discover.html">Discover</a>
+            <a href="messages.html">Messages</a>
+            <a href="notifications.html">Notifications</a>
+            <a href="#">Settings</a>
+        </nav>
+
+        <button class="logout" onclick="logout()">
+            Log Out
+        </button>
+
+    </header>
+
+    <main>
+
+        <div class="notifications-card">
+
+            <h1>Notifications</h1>
+
+            <p class="subtitle">
+                Your latest XLOVE notifications.
+            </p>
+
+            <div class="notification">
+                <h2>Welcome to XLOVE 🎉</h2>
+                <p>Your account has been created successfully.</p>
+                <span class="time">Just now</span>
+            </div>
+
+            <div class="notification">
+                <h2>Profile ready ✨</h2>
+                <p>Your profile is ready to be explored.</p>
+                <span class="time">Today</span>
+            </div>
+
+            <div class="notification">
+                <h2>Discover is available 🔎</h2>
+                <p>Explore the Discover section from your dashboard.</p>
+                <span class="time">Today</span>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        function logout() {
+            localStorage.removeItem("xloveUser");
+            window.location.href = "index.html";
+        }
+    </script>
+
+</body>
+</html>
+```
