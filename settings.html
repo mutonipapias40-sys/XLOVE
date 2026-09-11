@@ -1,0 +1,207 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - XLOVE</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fff, #fff0f6);
+        }
+
+        header {
+            background: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 30px;
+            font-weight: bold;
+            color: #ff2d75;
+        }
+
+        nav {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: #ff2d75;
+        }
+
+        .logout {
+            border: none;
+            background: #ff2d75;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        main {
+            max-width: 700px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .settings-card {
+            background: white;
+            padding: 35px;
+            border-radius: 25px;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            color: #111827;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .setting-item {
+            padding: 20px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-item h2 {
+            color: #111827;
+            font-size: 17px;
+            margin-bottom: 7px;
+        }
+
+        .setting-item p {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .profile-link {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 18px;
+            background: #ff2d75;
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 700px) {
+            header {
+                justify-content: center;
+            }
+
+            nav {
+                width: 100%;
+            }
+
+            .settings-card {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+
+        <div class="logo">XLOVE</div>
+
+        <nav>
+            <a href="dashboard.html">Home</a>
+            <a href="profile.html">My Profile</a>
+            <a href="discover.html">Discover</a>
+            <a href="messages.html">Messages</a>
+            <a href="notifications.html">Notifications</a>
+            <a href="settings.html">Settings</a>
+        </nav>
+
+        <button class="logout" onclick="logout()">
+            Log Out
+        </button>
+
+    </header>
+
+    <main>
+
+        <div class="settings-card">
+
+            <h1>Settings</h1>
+
+            <p class="subtitle">
+                Manage your XLOVE account settings.
+            </p>
+
+            <div class="setting-item">
+                <h2>Account</h2>
+                <p>
+                    Manage your profile information and account details.
+                </p>
+
+                <a href="profile.html" class="profile-link">
+                    My Profile
+                </a>
+            </div>
+
+            <div class="setting-item">
+                <h2>Privacy</h2>
+                <p>
+                    Privacy controls will be available here.
+                </p>
+            </div>
+
+            <div class="setting-item">
+                <h2>Notifications</h2>
+                <p>
+                    Notification preferences will be available here.
+                </p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        function logout() {
+            localStorage.removeItem("xloveUser");
+            window.location.href = "index.html";
+        }
+    </script>
+
+</body>
+</html>
+```
