@@ -203,6 +203,12 @@
 
             try {
 
+                /*
+                 * Dufata ID iri muri URL.
+                 * Urugero:
+                 * profile-view.html?id=1
+                 */
+
                 const urlParams =
                     new URLSearchParams(window.location.search);
 
@@ -220,8 +226,15 @@
                     return;
                 }
 
+                /*
+                 * Dukoresha endpoint twamaze kumenya ko ikora:
+                 * /api/users
+                 *
+                 * Hanyuma dushaka user ufite ID iri muri URL.
+                 */
+
                 const response = await fetch(
-                    `https://xlove-backend.onrender.com/api/users/${userId}`
+                    "https://xlove-backend.onrender.com/api/users"
                 );
 
                 const data = await response.json();
@@ -229,12 +242,28 @@
                 if (!response.ok) {
 
                     throw new Error(
-                        data.message || "Unable to load profile."
+                        data.message || "Unable to load users."
                     );
                 }
 
+                const users =
+                    data.users || [];
+
                 const user =
-                    data.user || data;
+                    users.find(
+                        item => String(item.id) === String(userId)
+                    );
+
+                if (!user) {
+
+                    profile.innerHTML = `
+                        <div class="status error">
+                            Profile not found.
+                        </div>
+                    `;
+
+                    return;
+                }
 
                 const username =
                     user.username || "User";
@@ -270,7 +299,7 @@
 
                             <p>
                                 <strong>Profile ID:</strong>
-                                ${user.id || userId}
+                                ${user.id}
                             </p>
 
                         </div>
