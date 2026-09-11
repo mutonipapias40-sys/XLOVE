@@ -152,14 +152,19 @@
                         User
                     </div>
                 </div>
-
+                
                 <div class="info-item">
                     <div class="label">Email</div>
                     <div class="value" id="emailInfo">
                         user@example.com
                     </div>
                 </div>
-
+<div class="info-item">
+    <div class="label">Bio</div>
+    <div class="value" id="bioInfo">
+        No bio yet.
+    </div>
+</div>
             </div>
             <a href="edit-profile.html" class="edit-profile">
     Edit Profile
@@ -193,7 +198,8 @@
 
             document.getElementById("emailInfo").textContent =
                 user.email;
-
+document.getElementById("bioInfo").textContent =
+    user.bio || "No bio yet.";
             document.getElementById("avatar").textContent =
                 user.username.charAt(0).toUpperCase();
         }
