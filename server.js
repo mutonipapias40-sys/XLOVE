@@ -13,10 +13,12 @@ app.use((req, res, next) => {
     "Access-Control-Allow-Origin",
     "https://xlove-as4y.onrender.com"
   );
+
   res.header(
     "Access-Control-Allow-Methods",
     "GET, POST, PUT, OPTIONS"
   );
+
   res.header(
     "Access-Control-Allow-Headers",
     "Content-Type"
@@ -44,8 +46,9 @@ const pool = new Pool({
   }
 });
 
-// Create users table
-async function createUsersTable() {
+// Create database tables
+async function createTables() {
+  // USERS TABLE
   await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
@@ -57,12 +60,25 @@ async function createUsersTable() {
     )
   `);
 
+  // Make sure bio exists
   await pool.query(`
     ALTER TABLE users
     ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT ''
   `);
 
+  // MESSAGES TABLE
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id SERIAL PRIMARY KEY,
+      sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      message TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   console.log("Users table is ready.");
+  console.log("Messages table is ready.");
 }
 
 // Test backend
@@ -71,6 +87,10 @@ app.get("/", (req, res) => {
     message: "XLOVE backend is running"
   });
 });
+
+// =====================================================
+// USERS
+// =====================================================
 
 // Get users for Discover
 app.get("/api/users", async (req, res) => {
@@ -84,6 +104,7 @@ app.get("/api/users", async (req, res) => {
     res.json({
       users: result.rows
     });
+
   } catch (error) {
     console.error("Get users error:", error);
 
@@ -238,10 +259,177 @@ app.put("/api/profile", async (req, res) => {
   }
 });
 
-// Start server
+// =====================================================
+// MESSAGES
+// =====================================================
+
+// Send a message
+app.post("/api/messages", async (req, res) => {
+  try {
+    const { sender_id, receiver_id, message } = req.body;
+
+    if (!sender_id || !receiver_id || !message) {
+      return res.status(400).json({
+        message: "Sender, receiver and message are required."
+      });
+    }
+
+    const cleanMessage = String(message).trim();
+
+    if (!cleanMessage) {
+      return res.status(400).json({
+        message: "Message cannot be empty."
+      });
+    }
+
+    // Check sender
+    const sender = await pool.query(
+      "SELECT id FROM users WHERE id = $1",
+      [sender_id]
+    );
+
+    if (sender.rows.length === 0) {
+      return res.status(404).json({
+        message: "Sender not found."
+      });
+    }
+
+    // Check receiver
+    const receiver = await pool.query(
+      "SELECT id FROM users WHERE id = $1",
+      [receiver_id]
+    );
+
+    if (receiver.rows.length === 0) {
+      return res.status(404).json({
+        message: "Receiver not found."
+      });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO messages
+       (sender_id, receiver_id, message)
+       VALUES ($1, $2, $3)
+       RETURNING id, sender_id, receiver_id, message, created_at`,
+      [sender_id, receiver_id, cleanMessage]
+    );
+
+    res.status(201).json({
+      message: "Message sent successfully.",
+      data: result.rows[0]
+    });
+
+  } catch (error) {
+    console.error("Send message error:", error);
+
+    res.status(500).json({
+      message: "Unable to send message."
+    });
+  }
+});
+
+// Get conversation between two users
+app.get("/api/messages", async (req, res) => {
+  try {
+    const { user1, user2 } = req.query;
+
+    if (!user1 || !user2) {
+      return res.status(400).json({
+        message: "user1 and user2 are required."
+      });
+    }
+
+    const result = await pool.query(
+      `
+      SELECT
+        m.id,
+        m.sender_id,
+        m.receiver_id,
+        m.message,
+        m.created_at,
+        sender.username AS sender_username,
+        receiver.username AS receiver_username
+      FROM messages m
+      JOIN users sender
+        ON sender.id = m.sender_id
+      JOIN users receiver
+        ON receiver.id = m.receiver_id
+      WHERE
+        (m.sender_id = $1 AND m.receiver_id = $2)
+        OR
+        (m.sender_id = $2 AND m.receiver_id = $1)
+      ORDER BY m.created_at ASC
+      `,
+      [user1, user2]
+    );
+
+    res.json({
+      messages: result.rows
+    });
+
+  } catch (error) {
+    console.error("Get messages error:", error);
+
+    res.status(500).json({
+      message: "Unable to load messages."
+    });
+  }
+});
+
+// Get all conversations for one user
+app.get("/api/conversations/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const result = await pool.query(
+      `
+      SELECT
+        m.id,
+        m.sender_id,
+        m.receiver_id,
+        m.message,
+        m.created_at,
+        CASE
+          WHEN m.sender_id = $1 THEN receiver.username
+          ELSE sender.username
+        END AS other_username,
+        CASE
+          WHEN m.sender_id = $1 THEN receiver.id
+          ELSE sender.id
+        END AS other_user_id
+      FROM messages m
+      JOIN users sender
+        ON sender.id = m.sender_id
+      JOIN users receiver
+        ON receiver.id = m.receiver_id
+      WHERE
+        m.sender_id = $1
+        OR m.receiver_id = $1
+      ORDER BY m.created_at DESC
+      `,
+      [userId]
+    );
+
+    res.json({
+      conversations: result.rows
+    });
+
+  } catch (error) {
+    console.error("Get conversations error:", error);
+
+    res.status(500).json({
+      message: "Unable to load conversations."
+    });
+  }
+});
+
+// =====================================================
+// START SERVER
+// =====================================================
+
 async function startServer() {
   try {
-    await createUsersTable();
+    await createTables();
 
     app.listen(PORT, () => {
       console.log(
