@@ -10,7 +10,7 @@ app.use(express.json());
 // Allow the XLOVE website to communicate with this backend
 app.use((req, res, next) => {
   res.header("Access-Control-Allow-Origin", "https://xlove-as4y.onrender.com");
-  res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type");
 
   if (req.method === "OPTIONS") {
@@ -48,6 +48,11 @@ async function createUsersTable() {
     )
   `);
 
+  await pool.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT ''
+  `);
+
   console.log("Users table is ready.");
 }
 
@@ -83,8 +88,8 @@ app.post("/api/register", async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 12);
 
     await pool.query(
-      "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)",
-      [username, email, passwordHash]
+      "INSERT INTO users (username, email, password_hash, bio) VALUES ($1, $2, $3, $4)",
+      [username, email, passwordHash, ""]
     );
 
     res.status(201).json({
@@ -111,7 +116,7 @@ app.post("/api/login", async (req, res) => {
     }
 
     const result = await pool.query(
-      "SELECT id, username, email, password_hash FROM users WHERE email = $1",
+      "SELECT id, username, email, password_hash, bio FROM users WHERE email = $1",
       [email]
     );
 
@@ -139,8 +144,47 @@ app.post("/api/login", async (req, res) => {
       user: {
         id: user.id,
         username: user.username,
-        email: user.email
+        email: user.email,
+        bio: user.bio || ""
       }
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Server error. Please try again."
+    });
+  }
+});
+
+// Update profile
+app.put("/api/profile", async (req, res) => {
+  try {
+    const { id, username, bio } = req.body;
+
+    if (!id || !username) {
+      return res.status(400).json({
+        message: "User ID and username are required."
+      });
+    }
+
+    const result = await pool.query(
+      `UPDATE users
+       SET username = $1, bio = $2
+       WHERE id = $3
+       RETURNING id, username, email, bio`,
+      [username, bio || "", id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "User not found."
+      });
+    }
+
+    res.json({
+      message: "Profile updated successfully.",
+      user: result.rows[0]
     });
   } catch (error) {
     console.error(error);
