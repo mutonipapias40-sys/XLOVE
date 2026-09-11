@@ -1,3 +1,4 @@
+```javascript
 const express = require("express");
 const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
@@ -61,6 +62,27 @@ app.get("/", (req, res) => {
   res.json({
     message: "XLOVE backend is running ❤️"
   });
+});
+
+// Get users for Discover
+app.get("/api/users", async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, username, bio, created_at
+      FROM users
+      ORDER BY created_at DESC
+    `);
+
+    res.json({
+      users: result.rows
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: "Unable to load users."
+    });
+  }
 });
 
 // Register
@@ -210,3 +232,4 @@ async function startServer() {
 }
 
 startServer();
+```
