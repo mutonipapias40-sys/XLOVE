@@ -1,4 +1,3 @@
-```javascript
 const express = require("express");
 const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
@@ -8,11 +7,20 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// Allow the XLOVE website to communicate with this backend
+// CORS
 app.use((req, res, next) => {
-  res.header("Access-Control-Allow-Origin", "https://xlove-as4y.onrender.com");
-  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type");
+  res.header(
+    "Access-Control-Allow-Origin",
+    "https://xlove-as4y.onrender.com"
+  );
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, OPTIONS"
+  );
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type"
+  );
 
   if (req.method === "OPTIONS") {
     return res.sendStatus(204);
@@ -60,7 +68,7 @@ async function createUsersTable() {
 // Test backend
 app.get("/", (req, res) => {
   res.json({
-    message: "XLOVE backend is running ❤️"
+    message: "XLOVE backend is running"
   });
 });
 
@@ -77,7 +85,7 @@ app.get("/api/users", async (req, res) => {
       users: result.rows
     });
   } catch (error) {
-    console.error(error);
+    console.error("Get users error:", error);
 
     res.status(500).json({
       message: "Unable to load users."
@@ -110,15 +118,18 @@ app.post("/api/register", async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 12);
 
     await pool.query(
-      "INSERT INTO users (username, email, password_hash, bio) VALUES ($1, $2, $3, $4)",
+      `INSERT INTO users
+       (username, email, password_hash, bio)
+       VALUES ($1, $2, $3, $4)`,
       [username, email, passwordHash, ""]
     );
 
     res.status(201).json({
       message: "Account created successfully."
     });
+
   } catch (error) {
-    console.error(error);
+    console.error("Register error:", error);
 
     res.status(500).json({
       message: "Server error. Please try again."
@@ -138,7 +149,14 @@ app.post("/api/login", async (req, res) => {
     }
 
     const result = await pool.query(
-      "SELECT id, username, email, password_hash, bio FROM users WHERE email = $1",
+      `SELECT
+        id,
+        username,
+        email,
+        password_hash,
+        bio
+       FROM users
+       WHERE email = $1`,
       [email]
     );
 
@@ -170,8 +188,9 @@ app.post("/api/login", async (req, res) => {
         bio: user.bio || ""
       }
     });
+
   } catch (error) {
-    console.error(error);
+    console.error("Login error:", error);
 
     res.status(500).json({
       message: "Server error. Please try again."
@@ -192,7 +211,8 @@ app.put("/api/profile", async (req, res) => {
 
     const result = await pool.query(
       `UPDATE users
-       SET username = $1, bio = $2
+       SET username = $1,
+           bio = $2
        WHERE id = $3
        RETURNING id, username, email, bio`,
       [username, bio || "", id]
@@ -208,8 +228,9 @@ app.put("/api/profile", async (req, res) => {
       message: "Profile updated successfully.",
       user: result.rows[0]
     });
+
   } catch (error) {
-    console.error(error);
+    console.error("Profile update error:", error);
 
     res.status(500).json({
       message: "Server error. Please try again."
@@ -223,13 +244,19 @@ async function startServer() {
     await createUsersTable();
 
     app.listen(PORT, () => {
-      console.log(`XLOVE backend running on port ${PORT}`);
+      console.log(
+        `XLOVE backend running on port ${PORT}`
+      );
     });
+
   } catch (error) {
-    console.error("Database connection failed:", error);
+    console.error(
+      "Database connection failed:",
+      error
+    );
+
     process.exit(1);
   }
 }
 
 startServer();
-```
