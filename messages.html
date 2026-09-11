@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XLOVE Messages</title>
+  <title>XLOVE - Messages</title>
 
   <style>
     * {
@@ -20,15 +20,16 @@
     header {
       background: #111;
       color: white;
-      padding: 15px 20px;
+      padding: 16px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    header h1 {
-      margin: 0;
-      font-size: 22px;
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ff3366;
     }
 
     .back {
@@ -36,88 +37,85 @@
       text-decoration: none;
     }
 
-    .chat-container {
+    .container {
       max-width: 700px;
-      margin: 20px auto;
+      margin: 25px auto;
       background: white;
-      border-radius: 12px;
+      border-radius: 14px;
       overflow: hidden;
-      box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
     }
 
-    .chat-header {
-      padding: 18px;
-      border-bottom: 1px solid #ddd;
-      font-size: 20px;
+    .title {
+      padding: 20px;
+      border-bottom: 1px solid #eee;
+      font-size: 24px;
       font-weight: bold;
     }
 
-    #messages {
-      height: 500px;
-      overflow-y: auto;
-      padding: 20px;
-      background: #fafafa;
-    }
-
-    .message {
-      margin-bottom: 12px;
-      padding: 10px 14px;
-      border-radius: 15px;
-      max-width: 75%;
-      word-wrap: break-word;
-    }
-
-    .mine {
-      margin-left: auto;
-      background: #111;
-      color: white;
-    }
-
-    .theirs {
-      margin-right: auto;
-      background: #e5e5e5;
+    .conversation {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      padding: 18px;
+      border-bottom: 1px solid #eee;
+      text-decoration: none;
       color: #222;
+      transition: background 0.2s;
+    }
+
+    .conversation:hover {
+      background: #f8f8f8;
+    }
+
+    .avatar {
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #ff3366;
+    }
+
+    .info {
+      flex: 1;
+    }
+
+    .username {
+      font-weight: bold;
+      font-size: 17px;
+      margin-bottom: 5px;
+    }
+
+    .last-message {
+      color: #777;
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 500px;
     }
 
     .time {
-      display: block;
-      font-size: 11px;
-      margin-top: 5px;
-      opacity: 0.7;
+      color: #999;
+      font-size: 12px;
     }
 
-    .send-area {
-      display: flex;
-      gap: 10px;
-      padding: 15px;
-      border-top: 1px solid #ddd;
-    }
-
-    #messageInput {
-      flex: 1;
-      padding: 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-
-    #sendButton {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 8px;
-      background: #111;
-      color: white;
-      cursor: pointer;
-    }
-
-    #sendButton:disabled {
-      opacity: 0.5;
-    }
-
-    #status {
-      padding: 10px 15px;
-      font-size: 14px;
+    .empty {
+      padding: 40px 20px;
       text-align: center;
+      color: #777;
+    }
+
+    .loading {
+      padding: 40px;
+      text-align: center;
+      color: #777;
+    }
+
+    .error {
+      padding: 30px;
+      text-align: center;
+      color: #d00;
     }
   </style>
 </head>
@@ -125,197 +123,223 @@
 <body>
 
 <header>
-  <h1>💬 XLOVE</h1>
-  <a class="back" href="discover.html">← Back</a>
+  <div class="logo">XLOVE</div>
+  <a href="discover.html" class="back">← Discover</a>
 </header>
 
-<div class="chat-container">
+<div class="container">
 
-  <div class="chat-header" id="chatTitle">
-    Loading...
+  <div class="title">
+    Messages
   </div>
 
-  <div id="status"></div>
-
-  <div id="messages"></div>
-
-  <div class="send-area">
-    <input
-      type="text"
-      id="messageInput"
-      placeholder="Write a message..."
-      autocomplete="off"
-    >
-
-    <button id="sendButton">
-      Send
-    </button>
+  <div id="conversationList">
+    <div class="loading">
+      Loading conversations...
+    </div>
   </div>
 
 </div>
 
 <script>
-  const API_URL = "https://xlove-backend.onrender.com/api";
 
-  const currentUser = JSON.parse(
-    localStorage.getItem("xloveUser") || "null"
-  );
+const API_URL = "https://xlove-backend.onrender.com/api";
 
-  const params = new URLSearchParams(window.location.search);
-  const targetUserId = params.get("id");
+const currentUser = JSON.parse(
+  localStorage.getItem("xloveUser")
+);
 
-  const chatTitle = document.getElementById("chatTitle");
-  const messagesBox = document.getElementById("messages");
-  const messageInput = document.getElementById("messageInput");
-  const sendButton = document.getElementById("sendButton");
-  const statusBox = document.getElementById("status");
+const conversationList =
+  document.getElementById("conversationList");
 
-  if (!currentUser) {
-    window.location.href = "login.html";
-  }
 
-  if (!targetUserId) {
-    chatTitle.textContent = "No user selected";
-    sendButton.disabled = true;
-  }
+/* Check login */
 
-  async function loadChat() {
-    try {
-      statusBox.textContent = "Loading...";
+if (!currentUser || !currentUser.id) {
 
-      const usersResponse = await fetch(`${API_URL}/users`);
+  conversationList.innerHTML = `
+    <div class="error">
+      Please login first.
+    </div>
+  `;
 
-      if (!usersResponse.ok) {
-        throw new Error("Unable to load users.");
-      }
+} else {
 
-      const usersData = await usersResponse.json();
+  loadConversations();
 
-      const targetUser = usersData.users.find(
-        user => Number(user.id) === Number(targetUserId)
-      );
+}
 
-      if (!targetUser) {
-        throw new Error("User not found.");
-      }
 
-      chatTitle.textContent = `💬 ${targetUser.username}`;
+/* Load conversations */
 
-      const messagesResponse = await fetch(
-        `${API_URL}/messages?user1=${currentUser.id}&user2=${targetUserId}`
-      );
+async function loadConversations() {
 
-      if (!messagesResponse.ok) {
-        throw new Error("Unable to load messages.");
-      }
+  try {
 
-      const messagesData = await messagesResponse.json();
+    const response = await fetch(
+      `${API_URL}/conversations/${currentUser.id}`
+    );
 
-      messagesBox.innerHTML = "";
-
-      if (messagesData.messages.length === 0) {
-        messagesBox.innerHTML =
-          "<p style='text-align:center;color:#777;'>No messages yet.</p>";
-      } else {
-        messagesData.messages.forEach(message => {
-          addMessage(message);
-        });
-      }
-
-      statusBox.textContent = "";
-
-      scrollToBottom();
-
-    } catch (error) {
-      console.error(error);
-      statusBox.textContent = error.message;
+    if (!response.ok) {
+      throw new Error("Failed to load conversations");
     }
-  }
 
-  function addMessage(message) {
-    const div = document.createElement("div");
+    const messages = await response.json();
 
-    div.className =
-      "message " +
-      (Number(message.sender_id) === Number(currentUser.id)
-        ? "mine"
-        : "theirs");
+    if (!messages || messages.length === 0) {
 
-    const text = document.createElement("div");
-    text.textContent = message.message;
+      conversationList.innerHTML = `
+        <div class="empty">
+          <h3>No messages yet</h3>
+          <p>Your conversations will appear here.</p>
+        </div>
+      `;
 
-    const time = document.createElement("span");
-    time.className = "time";
-
-    const date = new Date(message.created_at);
-
-    time.textContent = date.toLocaleString();
-
-    div.appendChild(text);
-    div.appendChild(time);
-
-    messagesBox.appendChild(div);
-  }
-
-  async function sendMessage() {
-    const text = messageInput.value.trim();
-
-    if (!text) {
       return;
     }
 
-    sendButton.disabled = true;
-    statusBox.textContent = "Sending...";
 
-    try {
-      const response = await fetch(`${API_URL}/messages`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          sender_id: Number(currentUser.id),
-          receiver_id: Number(targetUserId),
-          message: text
-        })
-      });
+    /* Group messages by other user */
 
-      const data = await response.json();
+    const conversations = {};
 
-      if (!response.ok) {
-        throw new Error(
-          data.message || "Unable to send message."
-        );
+    messages.forEach(message => {
+
+      const otherUserId =
+        Number(message.sender_id) === Number(currentUser.id)
+          ? Number(message.receiver_id)
+          : Number(message.sender_id);
+
+      const otherUsername =
+        Number(message.sender_id) === Number(currentUser.id)
+          ? message.receiver_username
+          : message.sender_username;
+
+      if (!conversations[otherUserId]) {
+
+        conversations[otherUserId] = {
+          userId: otherUserId,
+          username: otherUsername,
+          lastMessage: message.message,
+          createdAt: message.created_at
+        };
+
+      } else {
+
+        conversations[otherUserId].lastMessage =
+          message.message;
+
+        conversations[otherUserId].createdAt =
+          message.created_at;
+
       }
 
-      messageInput.value = "";
+    });
 
-      statusBox.textContent = "";
 
-      await loadChat();
+    /* Newest conversation first */
 
-    } catch (error) {
-      console.error(error);
-      statusBox.textContent = error.message;
-    }
+    const conversationArray =
+      Object.values(conversations).sort(
+        (a, b) =>
+          new Date(b.createdAt) -
+          new Date(a.createdAt)
+      );
 
-    sendButton.disabled = false;
-    messageInput.focus();
+
+    conversationList.innerHTML = "";
+
+
+    conversationArray.forEach(conversation => {
+
+      const item =
+        document.createElement("a");
+
+      item.className = "conversation";
+
+      item.href =
+        `messages.html?id=${conversation.userId}`;
+
+
+      item.innerHTML = `
+
+        <img
+          class="avatar"
+          src="xlove-logo.png"
+          alt="XLOVE"
+        >
+
+        <div class="info">
+
+          <div class="username">
+            ${escapeHTML(conversation.username || "User")}
+          </div>
+
+          <div class="last-message">
+            ${escapeHTML(conversation.lastMessage || "")}
+          </div>
+
+        </div>
+
+        <div class="time">
+          ${formatTime(conversation.createdAt)}
+        </div>
+
+      `;
+
+
+      conversationList.appendChild(item);
+
+    });
+
+
+  } catch (error) {
+
+    console.error(error);
+
+    conversationList.innerHTML = `
+      <div class="error">
+        Unable to load conversations.
+        <br><br>
+        Please try again later.
+      </div>
+    `;
+
   }
 
-  function scrollToBottom() {
-    messagesBox.scrollTop = messagesBox.scrollHeight;
+}
+
+
+/* Prevent HTML injection */
+
+function escapeHTML(text) {
+
+  const div = document.createElement("div");
+
+  div.textContent = text;
+
+  return div.innerHTML;
+
+}
+
+
+/* Format message time */
+
+function formatTime(dateString) {
+
+  const date = new Date(dateString);
+
+  if (isNaN(date)) {
+    return "";
   }
 
-  sendButton.addEventListener("click", sendMessage);
-
-  messageInput.addEventListener("keydown", function(event) {
-    if (event.key === "Enter") {
-      sendMessage();
-    }
+  return date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit"
   });
 
-  loadChat();
+}
+
 </script>
 
 </body>
