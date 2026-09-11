@@ -1,450 +1,322 @@
-const express = require("express");
-const { Pool } = require("pg");
-const bcrypt = require("bcryptjs");
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XLOVE Messages</title>
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-app.use(express.json());
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+    }
 
-// CORS
-app.use((req, res, next) => {
-  res.header(
-    "Access-Control-Allow-Origin",
-    "https://xlove-as4y.onrender.com"
+    header {
+      background: #111;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .back {
+      color: white;
+      text-decoration: none;
+    }
+
+    .chat-container {
+      max-width: 700px;
+      margin: 20px auto;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 3px 15px rgba(0,0,0,0.1);
+    }
+
+    .chat-header {
+      padding: 18px;
+      border-bottom: 1px solid #ddd;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    #messages {
+      height: 500px;
+      overflow-y: auto;
+      padding: 20px;
+      background: #fafafa;
+    }
+
+    .message {
+      margin-bottom: 12px;
+      padding: 10px 14px;
+      border-radius: 15px;
+      max-width: 75%;
+      word-wrap: break-word;
+    }
+
+    .mine {
+      margin-left: auto;
+      background: #111;
+      color: white;
+    }
+
+    .theirs {
+      margin-right: auto;
+      background: #e5e5e5;
+      color: #222;
+    }
+
+    .time {
+      display: block;
+      font-size: 11px;
+      margin-top: 5px;
+      opacity: 0.7;
+    }
+
+    .send-area {
+      display: flex;
+      gap: 10px;
+      padding: 15px;
+      border-top: 1px solid #ddd;
+    }
+
+    #messageInput {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    #sendButton {
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      background: #111;
+      color: white;
+      cursor: pointer;
+    }
+
+    #sendButton:disabled {
+      opacity: 0.5;
+    }
+
+    #status {
+      padding: 10px 15px;
+      font-size: 14px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h1>💬 XLOVE</h1>
+  <a class="back" href="discover.html">← Back</a>
+</header>
+
+<div class="chat-container">
+
+  <div class="chat-header" id="chatTitle">
+    Loading...
+  </div>
+
+  <div id="status"></div>
+
+  <div id="messages"></div>
+
+  <div class="send-area">
+    <input
+      type="text"
+      id="messageInput"
+      placeholder="Write a message..."
+      autocomplete="off"
+    >
+
+    <button id="sendButton">
+      Send
+    </button>
+  </div>
+
+</div>
+
+<script>
+  const API_URL = "https://xlove-backend.onrender.com/api";
+
+  const currentUser = JSON.parse(
+    localStorage.getItem("xloveUser") || "null"
   );
 
-  res.header(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, OPTIONS"
-  );
+  const params = new URLSearchParams(window.location.search);
+  const targetUserId = params.get("id");
 
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Content-Type"
-  );
+  const chatTitle = document.getElementById("chatTitle");
+  const messagesBox = document.getElementById("messages");
+  const messageInput = document.getElementById("messageInput");
+  const sendButton = document.getElementById("sendButton");
+  const statusBox = document.getElementById("status");
 
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(204);
+  if (!currentUser) {
+    window.location.href = "login.html";
   }
 
-  next();
-});
-
-// PostgreSQL connection
-const databaseUrl = process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  console.error("DATABASE_URL is missing.");
-  process.exit(1);
-}
-
-const pool = new Pool({
-  connectionString: databaseUrl,
-  ssl: {
-    rejectUnauthorized: false
+  if (!targetUserId) {
+    chatTitle.textContent = "No user selected";
+    sendButton.disabled = true;
   }
-});
 
-// Create database tables
-async function createTables() {
-  // USERS TABLE
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id SERIAL PRIMARY KEY,
-      username VARCHAR(50) NOT NULL,
-      bio TEXT DEFAULT '',
-      email VARCHAR(255) UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
+  async function loadChat() {
+    try {
+      statusBox.textContent = "Loading...";
 
-  // Make sure bio exists
-  await pool.query(`
-    ALTER TABLE users
-    ADD COLUMN IF NOT EXISTS bio TEXT DEFAULT ''
-  `);
+      const usersResponse = await fetch(`${API_URL}/users`);
 
-  // MESSAGES TABLE
-  await pool.query(`
-    CREATE TABLE IF NOT EXISTS messages (
-      id SERIAL PRIMARY KEY,
-      sender_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      receiver_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      message TEXT NOT NULL,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    )
-  `);
-
-  console.log("Users table is ready.");
-  console.log("Messages table is ready.");
-}
-
-// Test backend
-app.get("/", (req, res) => {
-  res.json({
-    message: "XLOVE backend is running"
-  });
-});
-
-// =====================================================
-// USERS
-// =====================================================
-
-// Get users for Discover
-app.get("/api/users", async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT id, username, bio, created_at
-      FROM users
-      ORDER BY created_at DESC
-    `);
-
-    res.json({
-      users: result.rows
-    });
-
-  } catch (error) {
-    console.error("Get users error:", error);
-
-    res.status(500).json({
-      message: "Unable to load users."
-    });
-  }
-});
-
-// Register
-app.post("/api/register", async (req, res) => {
-  try {
-    const { username, email, password } = req.body;
-
-    if (!username || !email || !password) {
-      return res.status(400).json({
-        message: "Username, email and password are required."
-      });
-    }
-
-    const existingUser = await pool.query(
-      "SELECT id FROM users WHERE email = $1",
-      [email]
-    );
-
-    if (existingUser.rows.length > 0) {
-      return res.status(409).json({
-        message: "An account with this email already exists."
-      });
-    }
-
-    const passwordHash = await bcrypt.hash(password, 12);
-
-    await pool.query(
-      `INSERT INTO users
-       (username, email, password_hash, bio)
-       VALUES ($1, $2, $3, $4)`,
-      [username, email, passwordHash, ""]
-    );
-
-    res.status(201).json({
-      message: "Account created successfully."
-    });
-
-  } catch (error) {
-    console.error("Register error:", error);
-
-    res.status(500).json({
-      message: "Server error. Please try again."
-    });
-  }
-});
-
-// Login
-app.post("/api/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-      return res.status(400).json({
-        message: "Email and password are required."
-      });
-    }
-
-    const result = await pool.query(
-      `SELECT
-        id,
-        username,
-        email,
-        password_hash,
-        bio
-       FROM users
-       WHERE email = $1`,
-      [email]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(401).json({
-        message: "Invalid email or password."
-      });
-    }
-
-    const user = result.rows[0];
-
-    const passwordMatch = await bcrypt.compare(
-      password,
-      user.password_hash
-    );
-
-    if (!passwordMatch) {
-      return res.status(401).json({
-        message: "Invalid email or password."
-      });
-    }
-
-    res.json({
-      message: "Login successful.",
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        bio: user.bio || ""
+      if (!usersResponse.ok) {
+        throw new Error("Unable to load users.");
       }
-    });
 
-  } catch (error) {
-    console.error("Login error:", error);
+      const usersData = await usersResponse.json();
 
-    res.status(500).json({
-      message: "Server error. Please try again."
-    });
-  }
-});
-
-// Update profile
-app.put("/api/profile", async (req, res) => {
-  try {
-    const { id, username, bio } = req.body;
-
-    if (!id || !username) {
-      return res.status(400).json({
-        message: "User ID and username are required."
-      });
-    }
-
-    const result = await pool.query(
-      `UPDATE users
-       SET username = $1,
-           bio = $2
-       WHERE id = $3
-       RETURNING id, username, email, bio`,
-      [username, bio || "", id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        message: "User not found."
-      });
-    }
-
-    res.json({
-      message: "Profile updated successfully.",
-      user: result.rows[0]
-    });
-
-  } catch (error) {
-    console.error("Profile update error:", error);
-
-    res.status(500).json({
-      message: "Server error. Please try again."
-    });
-  }
-});
-
-// =====================================================
-// MESSAGES
-// =====================================================
-
-// Send a message
-app.post("/api/messages", async (req, res) => {
-  try {
-    const { sender_id, receiver_id, message } = req.body;
-
-    if (!sender_id || !receiver_id || !message) {
-      return res.status(400).json({
-        message: "Sender, receiver and message are required."
-      });
-    }
-
-    const cleanMessage = String(message).trim();
-
-    if (!cleanMessage) {
-      return res.status(400).json({
-        message: "Message cannot be empty."
-      });
-    }
-
-    // Check sender
-    const sender = await pool.query(
-      "SELECT id FROM users WHERE id = $1",
-      [sender_id]
-    );
-
-    if (sender.rows.length === 0) {
-      return res.status(404).json({
-        message: "Sender not found."
-      });
-    }
-
-    // Check receiver
-    const receiver = await pool.query(
-      "SELECT id FROM users WHERE id = $1",
-      [receiver_id]
-    );
-
-    if (receiver.rows.length === 0) {
-      return res.status(404).json({
-        message: "Receiver not found."
-      });
-    }
-
-    const result = await pool.query(
-      `INSERT INTO messages
-       (sender_id, receiver_id, message)
-       VALUES ($1, $2, $3)
-       RETURNING id, sender_id, receiver_id, message, created_at`,
-      [sender_id, receiver_id, cleanMessage]
-    );
-
-    res.status(201).json({
-      message: "Message sent successfully.",
-      data: result.rows[0]
-    });
-
-  } catch (error) {
-    console.error("Send message error:", error);
-
-    res.status(500).json({
-      message: "Unable to send message."
-    });
-  }
-});
-
-// Get conversation between two users
-app.get("/api/messages", async (req, res) => {
-  try {
-    const { user1, user2 } = req.query;
-
-    if (!user1 || !user2) {
-      return res.status(400).json({
-        message: "user1 and user2 are required."
-      });
-    }
-
-    const result = await pool.query(
-      `
-      SELECT
-        m.id,
-        m.sender_id,
-        m.receiver_id,
-        m.message,
-        m.created_at,
-        sender.username AS sender_username,
-        receiver.username AS receiver_username
-      FROM messages m
-      JOIN users sender
-        ON sender.id = m.sender_id
-      JOIN users receiver
-        ON receiver.id = m.receiver_id
-      WHERE
-        (m.sender_id = $1 AND m.receiver_id = $2)
-        OR
-        (m.sender_id = $2 AND m.receiver_id = $1)
-      ORDER BY m.created_at ASC
-      `,
-      [user1, user2]
-    );
-
-    res.json({
-      messages: result.rows
-    });
-
-  } catch (error) {
-    console.error("Get messages error:", error);
-
-    res.status(500).json({
-      message: "Unable to load messages."
-    });
-  }
-});
-
-// Get all conversations for one user
-app.get("/api/conversations/:userId", async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    const result = await pool.query(
-      `
-      SELECT
-        m.id,
-        m.sender_id,
-        m.receiver_id,
-        m.message,
-        m.created_at,
-        CASE
-          WHEN m.sender_id = $1 THEN receiver.username
-          ELSE sender.username
-        END AS other_username,
-        CASE
-          WHEN m.sender_id = $1 THEN receiver.id
-          ELSE sender.id
-        END AS other_user_id
-      FROM messages m
-      JOIN users sender
-        ON sender.id = m.sender_id
-      JOIN users receiver
-        ON receiver.id = m.receiver_id
-      WHERE
-        m.sender_id = $1
-        OR m.receiver_id = $1
-      ORDER BY m.created_at DESC
-      `,
-      [userId]
-    );
-
-    res.json({
-      conversations: result.rows
-    });
-
-  } catch (error) {
-    console.error("Get conversations error:", error);
-
-    res.status(500).json({
-      message: "Unable to load conversations."
-    });
-  }
-});
-
-// =====================================================
-// START SERVER
-// =====================================================
-
-async function startServer() {
-  try {
-    await createTables();
-
-    app.listen(PORT, () => {
-      console.log(
-        `XLOVE backend running on port ${PORT}`
+      const targetUser = usersData.users.find(
+        user => Number(user.id) === Number(targetUserId)
       );
-    });
 
-  } catch (error) {
-    console.error(
-      "Database connection failed:",
-      error
-    );
+      if (!targetUser) {
+        throw new Error("User not found.");
+      }
 
-    process.exit(1);
+      chatTitle.textContent = `💬 ${targetUser.username}`;
+
+      const messagesResponse = await fetch(
+        `${API_URL}/messages?user1=${currentUser.id}&user2=${targetUserId}`
+      );
+
+      if (!messagesResponse.ok) {
+        throw new Error("Unable to load messages.");
+      }
+
+      const messagesData = await messagesResponse.json();
+
+      messagesBox.innerHTML = "";
+
+      if (messagesData.messages.length === 0) {
+        messagesBox.innerHTML =
+          "<p style='text-align:center;color:#777;'>No messages yet.</p>";
+      } else {
+        messagesData.messages.forEach(message => {
+          addMessage(message);
+        });
+      }
+
+      statusBox.textContent = "";
+
+      scrollToBottom();
+
+    } catch (error) {
+      console.error(error);
+      statusBox.textContent = error.message;
+    }
   }
-}
 
-startServer();
+  function addMessage(message) {
+    const div = document.createElement("div");
+
+    div.className =
+      "message " +
+      (Number(message.sender_id) === Number(currentUser.id)
+        ? "mine"
+        : "theirs");
+
+    const text = document.createElement("div");
+    text.textContent = message.message;
+
+    const time = document.createElement("span");
+    time.className = "time";
+
+    const date = new Date(message.created_at);
+
+    time.textContent = date.toLocaleString();
+
+    div.appendChild(text);
+    div.appendChild(time);
+
+    messagesBox.appendChild(div);
+  }
+
+  async function sendMessage() {
+    const text = messageInput.value.trim();
+
+    if (!text) {
+      return;
+    }
+
+    sendButton.disabled = true;
+    statusBox.textContent = "Sending...";
+
+    try {
+      const response = await fetch(`${API_URL}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          sender_id: Number(currentUser.id),
+          receiver_id: Number(targetUserId),
+          message: text
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Unable to send message."
+        );
+      }
+
+      messageInput.value = "";
+
+      statusBox.textContent = "";
+
+      await loadChat();
+
+    } catch (error) {
+      console.error(error);
+      statusBox.textContent = error.message;
+    }
+
+    sendButton.disabled = false;
+    messageInput.focus();
+  }
+
+  function scrollToBottom() {
+    messagesBox.scrollTop = messagesBox.scrollHeight;
+  }
+
+  sendButton.addEventListener("click", sendMessage);
+
+  messageInput.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+      sendMessage();
+    }
+  });
+
+  loadChat();
+</script>
+
+</body>
+</html>
