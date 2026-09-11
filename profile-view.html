@@ -122,6 +122,53 @@
         margin: 10px 0;
     }
 
+    /* ACTION BUTTONS */
+
+    .actions {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 25px;
+        flex-wrap: wrap;
+    }
+
+    .like-button,
+    .message-button {
+        border: none;
+        padding: 13px 25px;
+        border-radius: 25px;
+        font-size: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: none;
+        transition: 0.2s;
+    }
+
+    .like-button {
+        background: #fff0f6;
+        color: #ff2d75;
+        border: 2px solid #ff2d75;
+    }
+
+    .like-button:hover {
+        background: #ff2d75;
+        color: white;
+    }
+
+    .like-button.liked {
+        background: #ff2d75;
+        color: white;
+    }
+
+    .message-button {
+        background: #ff2d75;
+        color: white;
+    }
+
+    .message-button:hover {
+        background: #e91e63;
+    }
+
     .back-button {
         display: inline-block;
         margin-top: 25px;
@@ -164,6 +211,15 @@
 
         .username {
             font-size: 26px;
+        }
+
+        .actions {
+            flex-direction: column;
+        }
+
+        .like-button,
+        .message-button {
+            width: 100%;
         }
     }
 </style>
@@ -300,6 +356,25 @@
 
                     </div>
 
+                    <div class="actions">
+
+                        <button
+                            class="like-button"
+                            id="likeButton"
+                            onclick="toggleLike()"
+                        >
+                            ❤️ Like
+                        </button>
+
+                        <a
+                            href="messages.html"
+                            class="message-button"
+                        >
+                            💬 Message
+                        </a>
+
+                    </div>
+
                     <a
                         href="discover.html"
                         class="back-button"
@@ -310,6 +385,8 @@
                 </div>
 
             `;
+
+            setupLike(user.id);
 
         } catch (error) {
 
@@ -331,12 +408,77 @@
         }
     }
 
+
+    function setupLike(userId) {
+
+        const liked =
+            localStorage.getItem(
+                "xlove-liked-" + userId
+            );
+
+        const button =
+            document.getElementById("likeButton");
+
+        if (liked === "true") {
+
+            button.classList.add("liked");
+
+            button.innerHTML =
+                "❤️ Liked";
+
+        }
+    }
+
+
+    function toggleLike() {
+
+        const urlParams =
+            new URLSearchParams(window.location.search);
+
+        const userId =
+            urlParams.get("id");
+
+        const button =
+            document.getElementById("likeButton");
+
+        const storageKey =
+            "xlove-liked-" + userId;
+
+        const alreadyLiked =
+            localStorage.getItem(storageKey);
+
+        if (alreadyLiked === "true") {
+
+            localStorage.removeItem(storageKey);
+
+            button.classList.remove("liked");
+
+            button.innerHTML =
+                "❤️ Like";
+
+        } else {
+
+            localStorage.setItem(
+                storageKey,
+                "true"
+            );
+
+            button.classList.add("liked");
+
+            button.innerHTML =
+                "❤️ Liked";
+        }
+    }
+
+
     function logout() {
 
         localStorage.removeItem("xloveUser");
 
-        window.location.href = "index.html";
+        window.location.href =
+            "index.html";
     }
+
 
     loadProfile();
 
