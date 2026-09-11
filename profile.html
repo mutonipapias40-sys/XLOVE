@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - XLOVE</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fff, #fff0f6);
+        }
+
+        header {
+            background: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+
+        .logo {
+            font-size: 30px;
+            font-weight: bold;
+            color: #ff2d75;
+        }
+
+        .back {
+            color: #ff2d75;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        main {
+            max-width: 650px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .profile-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+        }
+
+        .avatar {
+            width: 110px;
+            height: 110px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: #ff2d75;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 42px;
+            font-weight: bold;
+        }
+
+        h1 {
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .email {
+            color: #6b7280;
+            margin-bottom: 30px;
+        }
+
+        .info {
+            text-align: left;
+            border-top: 1px solid #eee;
+            padding-top: 25px;
+        }
+
+        .info-item {
+            margin-bottom: 20px;
+        }
+
+        .label {
+            color: #6b7280;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+
+        .value {
+            color: #111827;
+            font-size: 17px;
+            font-weight: bold;
+        }
+
+        .logout {
+            margin-top: 25px;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 25px;
+            background: #ff2d75;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .logout:hover {
+            background: #e52265;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">XLOVE</div>
+
+        <a href="dashboard.html" class="back">
+            ← Dashboard
+        </a>
+    </header>
+
+    <main>
+
+        <div class="profile-card">
+
+            <div class="avatar" id="avatar">
+                U
+            </div>
+
+            <h1 id="username">
+                User
+            </h1>
+
+            <p class="email" id="email">
+                user@example.com
+            </p>
+
+            <div class="info">
+
+                <div class="info-item">
+                    <div class="label">Username</div>
+                    <div class="value" id="usernameInfo">
+                        User
+                    </div>
+                </div>
+
+                <div class="info-item">
+                    <div class="label">Email</div>
+                    <div class="value" id="emailInfo">
+                        user@example.com
+                    </div>
+                </div>
+
+            </div>
+
+            <button class="logout" onclick="logout()">
+                Log Out
+            </button>
+
+        </div>
+
+    </main>
+
+    <script>
+        const user = JSON.parse(
+            localStorage.getItem("xloveUser")
+        );
+
+        if (!user) {
+            window.location.href = "login.html";
+        } else {
+
+            document.getElementById("username").textContent =
+                user.username;
+
+            document.getElementById("email").textContent =
+                user.email;
+
+            document.getElementById("usernameInfo").textContent =
+                user.username;
+
+            document.getElementById("emailInfo").textContent =
+                user.email;
+
+            document.getElementById("avatar").textContent =
+                user.username.charAt(0).toUpperCase();
+        }
+
+        function logout() {
+            localStorage.removeItem("xloveUser");
+            window.location.href = "index.html";
+        }
+    </script>
+
+</body>
+</html>
