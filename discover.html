@@ -1,0 +1,209 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discover - XLOVE</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fff, #fff0f6);
+        }
+
+        header {
+            background: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            font-size: 30px;
+            font-weight: bold;
+            color: #ff2d75;
+        }
+
+        nav {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        nav a:hover {
+            color: #ff2d75;
+        }
+
+        .logout {
+            border: none;
+            background: #ff2d75;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .title {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .title h1 {
+            color: #111827;
+            margin-bottom: 10px;
+        }
+
+        .title p {
+            color: #6b7280;
+            font-size: 16px;
+        }
+
+        .profiles {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 15px;
+            border-radius: 50%;
+            background: #ff2d75;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .profile-card h2 {
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .profile-card p {
+            color: #6b7280;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 800px) {
+            .profiles {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 550px) {
+            .profiles {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                justify-content: center;
+            }
+
+            nav {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+
+        <div class="logo">XLOVE</div>
+
+        <nav>
+            <a href="dashboard.html">Home</a>
+            <a href="profile.html">My Profile</a>
+            <a href="discover.html">Discover</a>
+            <a href="#">Messages</a>
+            <a href="#">Notifications</a>
+            <a href="#">Settings</a>
+        </nav>
+
+        <button class="logout" onclick="logout()">
+            Log Out
+        </button>
+
+    </header>
+
+    <main>
+
+        <div class="title">
+            <h1>Discover</h1>
+            <p>Explore profiles on XLOVE.</p>
+        </div>
+
+        <div class="profiles">
+
+            <div class="profile-card">
+                <div class="avatar">A</div>
+                <h2>Alex</h2>
+                <p>Welcome to my XLOVE profile.</p>
+            </div>
+
+            <div class="profile-card">
+                <div class="avatar">S</div>
+                <h2>Sarah</h2>
+                <p>Nice to meet you on XLOVE.</p>
+            </div>
+
+            <div class="profile-card">
+                <div class="avatar">J</div>
+                <h2>Jordan</h2>
+                <p>Enjoy exploring XLOVE.</p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        function logout() {
+            localStorage.removeItem("xloveUser");
+            window.location.href = "index.html";
+        }
+    </script>
+
+</body>
+</html>
+```
