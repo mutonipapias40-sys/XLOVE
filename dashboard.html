@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,12 +25,34 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 25px;
             box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+            flex-wrap: wrap;
         }
 
         .logo {
             font-size: 30px;
             font-weight: bold;
+            color: #ff2d75;
+        }
+
+        .dashboard-nav {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .dashboard-nav a {
+            text-decoration: none;
+            color: #374151;
+            font-weight: bold;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .dashboard-nav a:hover {
             color: #ff2d75;
         }
 
@@ -41,6 +64,10 @@
             border-radius: 20px;
             font-weight: bold;
             cursor: pointer;
+        }
+
+        .logout:hover {
+            background: #e52265;
         }
 
         main {
@@ -71,39 +98,89 @@
             font-size: 17px;
             line-height: 1.6;
         }
+
+        .profile-button {
+            display: inline-block;
+            margin-top: 25px;
+            padding: 12px 25px;
+            background: #ff2d75;
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .profile-button:hover {
+            background: #e52265;
+        }
+
+        @media (max-width: 700px) {
+            header {
+                justify-content: center;
+            }
+
+            .dashboard-nav {
+                order: 3;
+                width: 100%;
+            }
+
+            main {
+                margin: 30px auto;
+            }
+        }
     </style>
 </head>
 
 <body>
 
     <header>
+
         <div class="logo">XLOVE</div>
+
+        <nav class="dashboard-nav">
+            <a href="dashboard.html">Home</a>
+            <a href="profile.html">My Profile</a>
+            <a href="#">Discover</a>
+            <a href="#">Messages</a>
+            <a href="#">Notifications</a>
+            <a href="#">Settings</a>
+        </nav>
 
         <button class="logout" onclick="logout()">
             Log Out
         </button>
+
     </header>
 
     <main>
+
         <div class="welcome">
+
             <h1>
                 Welcome, <span id="username" class="username">User</span>! 👋
             </h1>
 
             <p>
                 Welcome to your XLOVE dashboard.
-            </p><a 
-                 href="profile.html" class="profile-button">
-    My Profile
-</a>
+            </p>
+
+            <a href="profile.html" class="profile-button">
+                My Profile
+            </a>
+
         </div>
+
     </main>
 
     <script>
-        const user = JSON.parse(localStorage.getItem("xloveUser"));
+        const user = JSON.parse(
+            localStorage.getItem("xloveUser")
+        );
 
         if (user && user.username) {
-            document.getElementById("username").textContent = user.username;
+            document.getElementById("username").textContent =
+                user.username;
         }
 
         function logout() {
@@ -114,3 +191,4 @@
 
 </body>
 </html>
+```
