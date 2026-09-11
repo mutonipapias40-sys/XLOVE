@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - XLOVE</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fff, #fff0f6);
+        }
+
+        header {
+            background: white;
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+
+        .logo {
+            font-size: 30px;
+            font-weight: bold;
+            color: #ff2d75;
+        }
+
+        .back {
+            color: #ff2d75;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        main {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        .edit-card {
+            background: white;
+            padding: 35px 30px;
+            border-radius: 25px;
+            box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: #111827;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        input,
+        textarea {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 22px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #ff2d75;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 25px;
+            background: #ff2d75;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #e52265;
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">XLOVE</div>
+
+        <a href="profile.html" class="back">
+            ← Profile
+        </a>
+    </header>
+
+    <main>
+
+        <div class="edit-card">
+
+            <h1>Edit Profile</h1>
+
+            <form id="editForm">
+
+                <label for="username">
+                    Username
+                </label>
+
+                <input
+                    type="text"
+                    id="username"
+                    placeholder="Enter your username"
+                    required
+                >
+
+                <label for="bio">
+                    Bio
+                </label>
+
+                <textarea
+                    id="bio"
+                    placeholder="Tell us something about yourself..."
+                    maxlength="160"
+                ></textarea>
+
+                <button type="submit">
+                    Save Changes
+                </button>
+
+                <p id="message" class="message"></p>
+
+            </form>
+
+        </div>
+
+    </main>
+
+    <script>
+        const user = JSON.parse(
+            localStorage.getItem("xloveUser")
+        );
+
+        if (!user) {
+            window.location.href = "login.html";
+        } else {
+            document.getElementById("username").value =
+                user.username || "";
+
+            document.getElementById("bio").value =
+                user.bio || "";
+        }
+
+        document.getElementById("editForm")
+            .addEventListener("submit", function(event) {
+
+                event.preventDefault();
+
+                const username =
+                    document.getElementById("username").value.trim();
+
+                const bio =
+                    document.getElementById("bio").value.trim();
+
+                if (!username) {
+                    return;
+                }
+
+                user.username = username;
+                user.bio = bio;
+
+                localStorage.setItem(
+                    "xloveUser",
+                    JSON.stringify(user)
+                );
+
+                const message =
+                    document.getElementById("message");
+
+                message.textContent =
+                    "Profile updated successfully!";
+
+                message.style.color = "#16a34a";
+
+                setTimeout(() => {
+                    window.location.href = "profile.html";
+                }, 1000);
+            });
+    </script>
+
+</body>
+</html>
