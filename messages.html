@@ -135,7 +135,8 @@
 
 <script>
 
-const API_URL = "https://xlove-backend.onrender.com/api";
+const API_URL =
+  "https://xlove-backend.onrender.com/api";
 
 const currentUser =
   JSON.parse(localStorage.getItem("xloveUser"));
@@ -163,28 +164,24 @@ async function loadConversations() {
 
   try {
 
-    // Get all users
     const usersResponse =
       await fetch(`${API_URL}/users`);
 
     if (!usersResponse.ok) {
-      throw new Error("Could not load users");
+      throw new Error("Users request failed");
     }
 
-    const users =
+    const usersData =
       await usersResponse.json();
 
+    const users =
+      usersData.users || [];
 
-    // Check every user for a conversation
+
     const conversations = [];
 
 
     for (const user of users) {
-
-      if (Number(user.id) === Number(currentUser.id)) {
-        continue;
-      }
-
 
       const response =
         await fetch(
@@ -197,8 +194,11 @@ async function loadConversations() {
       }
 
 
-      const messages =
+      const data =
         await response.json();
+
+      const messages =
+        data.messages || [];
 
 
       if (messages.length > 0) {
@@ -224,7 +224,6 @@ async function loadConversations() {
     }
 
 
-    // No conversations
     if (conversations.length === 0) {
 
       list.innerHTML = `
@@ -238,7 +237,6 @@ async function loadConversations() {
     }
 
 
-    // Newest first
     conversations.sort(
       (a, b) =>
         new Date(b.createdAt) -
@@ -254,9 +252,8 @@ async function loadConversations() {
       const item =
         document.createElement("a");
 
-
-      item.className = "conversation";
-
+      item.className =
+        "conversation";
 
       item.href =
         `messages.html?id=${conversation.userId}`;
@@ -296,7 +293,7 @@ async function loadConversations() {
 
   } catch (error) {
 
-    console.error(error);
+    console.error("Conversation error:", error);
 
     list.innerHTML = `
       <div class="error">
