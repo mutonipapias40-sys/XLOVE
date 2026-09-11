@@ -167,14 +167,21 @@
                 const data = await response.json();
 
                 if (response.ok) {
+
                     message.textContent = "Login successful!";
                     message.style.color = "#16a34a";
 
+                    localStorage.setItem(
+                        "xloveUser",
+                        JSON.stringify(data.user)
+                    );
+
                     setTimeout(() => {
-                        window.location.href = "index.html";
+                        window.location.href = "dashboard.html";
                     }, 1000);
 
                 } else {
+
                     message.textContent =
                         data.message || "Login failed.";
 
@@ -182,6 +189,7 @@
                 }
 
             } catch (error) {
+
                 console.error(error);
 
                 message.textContent =
@@ -190,6 +198,7 @@
                 message.style.color = "#dc2626";
 
             } finally {
+
                 loginButton.disabled = false;
                 loginButton.textContent = "Log In";
             }
