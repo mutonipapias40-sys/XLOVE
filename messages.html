@@ -1,209 +1,567 @@
-```html
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Messages - XLOVE</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
+```
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+    }
 
-        body {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #fff, #fff0f6);
-        }
+    body {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #fff, #fff0f6);
+    }
+
+    header {
+        background: white;
+        padding: 20px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 25px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        flex-wrap: wrap;
+    }
+
+    .logo {
+        font-size: 30px;
+        font-weight: bold;
+        color: #ff2d75;
+    }
+
+    nav {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    nav a {
+        text-decoration: none;
+        color: #374151;
+        font-weight: bold;
+        font-size: 14px;
+    }
+
+    nav a:hover {
+        color: #ff2d75;
+    }
+
+    .logout {
+        border: none;
+        background: #ff2d75;
+        color: white;
+        padding: 10px 18px;
+        border-radius: 20px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    main {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 20px;
+    }
+
+    .chat-card {
+        background: white;
+        border-radius: 25px;
+        box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+        overflow: hidden;
+    }
+
+    .chat-header {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .avatar {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #ff2d75;
+        flex-shrink: 0;
+    }
+
+    .avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .chat-user h1 {
+        font-size: 20px;
+        color: #111827;
+        margin-bottom: 5px;
+    }
+
+    .online {
+        color: #16a34a;
+        font-size: 13px;
+    }
+
+    .chat-body {
+        height: 450px;
+        padding: 25px;
+        overflow-y: auto;
+        background: #fffafd;
+    }
+
+    .welcome {
+        text-align: center;
+        color: #9ca3af;
+        margin-top: 150px;
+        line-height: 1.6;
+    }
+
+    .message {
+        display: flex;
+        margin-bottom: 15px;
+    }
+
+    .message.sent {
+        justify-content: flex-end;
+    }
+
+    .bubble {
+        max-width: 70%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        font-size: 15px;
+        line-height: 1.4;
+    }
+
+    .message.received .bubble {
+        background: #f3f4f6;
+        color: #111827;
+        border-bottom-left-radius: 5px;
+    }
+
+    .message.sent .bubble {
+        background: #ff2d75;
+        color: white;
+        border-bottom-right-radius: 5px;
+    }
+
+    .chat-input-area {
+        padding: 15px;
+        border-top: 1px solid #eee;
+        display: flex;
+        gap: 10px;
+        background: white;
+    }
+
+    .chat-input {
+        flex: 1;
+        border: 1px solid #ddd;
+        border-radius: 25px;
+        padding: 13px 18px;
+        outline: none;
+        font-size: 15px;
+    }
+
+    .chat-input:focus {
+        border-color: #ff2d75;
+    }
+
+    .send-button {
+        border: none;
+        background: #ff2d75;
+        color: white;
+        padding: 0 22px;
+        border-radius: 25px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .send-button:hover {
+        background: #e91e63;
+    }
+
+    .back-button {
+        display: inline-block;
+        margin-bottom: 15px;
+        text-decoration: none;
+        color: #ff2d75;
+        font-weight: bold;
+    }
+
+    .empty {
+        text-align: center;
+        color: #6b7280;
+        padding: 50px 20px;
+    }
+
+    @media (max-width: 700px) {
 
         header {
-            background: white;
-            padding: 20px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 25px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
-            flex-wrap: wrap;
-        }
-
-        .logo {
-            font-size: 30px;
-            font-weight: bold;
-            color: #ff2d75;
+            justify-content: center;
         }
 
         nav {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #374151;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        nav a:hover {
-            color: #ff2d75;
-        }
-
-        .logout {
-            border: none;
-            background: #ff2d75;
-            color: white;
-            padding: 10px 18px;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
+            width: 100%;
         }
 
         main {
-            max-width: 900px;
-            margin: 50px auto;
-            padding: 20px;
+            margin: 20px auto;
+            padding: 12px;
         }
 
-        .messages-card {
-            background: white;
-            padding: 35px;
-            border-radius: 25px;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+        .chat-body {
+            height: 55vh;
         }
 
-        h1 {
-            color: #111827;
-            margin-bottom: 10px;
+        .bubble {
+            max-width: 82%;
         }
 
-        .subtitle {
-            color: #6b7280;
-            margin-bottom: 30px;
+        .send-button {
+            padding: 0 18px;
         }
+    }
+</style>
+```
 
-        .message-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 18px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #ff2d75;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 20px;
-        }
-
-        .message-info h2 {
-            font-size: 17px;
-            color: #111827;
-            margin-bottom: 5px;
-        }
-
-        .message-info p {
-            color: #6b7280;
-            font-size: 14px;
-        }
-
-        @media (max-width: 700px) {
-            header {
-                justify-content: center;
-            }
-
-            nav {
-                width: 100%;
-            }
-
-            .messages-card {
-                padding: 25px 20px;
-            }
-        }
-    </style>
 </head>
 
 <body>
 
-    <header>
+```
+<header>
 
-        <div class="logo">XLOVE</div>
+    <div class="logo">XLOVE</div>
 
-        <nav>
-            <a href="dashboard.html">Home</a>
-            <a href="profile.html">My Profile</a>
-            <a href="discover.html">Discover</a>
-            <a href="messages.html">Messages</a>
-            <a href="#">Notifications</a>
-            <a href="#">Settings</a>
-        </nav>
+    <nav>
+        <a href="dashboard.html">Home</a>
+        <a href="profile.html">My Profile</a>
+        <a href="discover.html">Discover</a>
+        <a href="messages.html">Messages</a>
+        <a href="notifications.html">Notifications</a>
+        <a href="settings.html">Settings</a>
+    </nav>
 
-        <button class="logout" onclick="logout()">
-            Log Out
-        </button>
+    <button class="logout" onclick="logout()">
+        Log Out
+    </button>
 
-    </header>
+</header>
 
-    <main>
+<main>
 
-        <div class="messages-card">
+    <a href="discover.html" class="back-button">
+        ← Back to Discover
+    </a>
 
-            <h1>Messages</h1>
+    <div class="chat-card">
 
-            <p class="subtitle">
-                Your conversations will appear here.
-            </p>
+        <div class="chat-header">
 
-            <div class="message-item">
-                <div class="avatar">A</div>
-
-                <div class="message-info">
-                    <h2>Alex</h2>
-                    <p>No messages yet.</p>
-                </div>
+            <div class="avatar">
+                <img
+                    src="xlove-logo.png"
+                    alt="Profile"
+                >
             </div>
 
-            <div class="message-item">
-                <div class="avatar">S</div>
+            <div class="chat-user">
 
-                <div class="message-info">
-                    <h2>Sarah</h2>
-                    <p>No messages yet.</p>
+                <h1 id="chatUsername">
+                    Loading...
+                </h1>
+
+                <div class="online">
+                    ● Available
                 </div>
-            </div>
 
-            <div class="message-item">
-                <div class="avatar">J</div>
-
-                <div class="message-info">
-                    <h2>Jordan</h2>
-                    <p>No messages yet.</p>
-                </div>
             </div>
 
         </div>
 
-    </main>
+        <div
+            class="chat-body"
+            id="chatBody"
+        >
 
-    <script>
-        function logout() {
-            localStorage.removeItem("xloveUser");
-            window.location.href = "index.html";
+            <div class="welcome" id="welcomeMessage">
+                Start a conversation with this person. 💬
+            </div>
+
+        </div>
+
+        <div class="chat-input-area">
+
+            <input
+                type="text"
+                id="messageInput"
+                class="chat-input"
+                placeholder="Write a message..."
+                autocomplete="off"
+            >
+
+            <button
+                class="send-button"
+                onclick="sendMessage()"
+            >
+                Send
+            </button>
+
+        </div>
+
+    </div>
+
+</main>
+
+<script>
+
+    let currentUserId = null;
+
+    async function loadChatUser() {
+
+        const params =
+            new URLSearchParams(
+                window.location.search
+            );
+
+        currentUserId =
+            params.get("id");
+
+        if (!currentUserId) {
+
+            document.getElementById(
+                "chatUsername"
+            ).textContent = "User";
+
+            return;
         }
-    </script>
+
+        try {
+
+            const response = await fetch(
+                "https://xlove-backend.onrender.com/api/users"
+            );
+
+            const data =
+                await response.json();
+
+            const users =
+                data.users || [];
+
+            const user =
+                users.find(
+                    item =>
+                        String(item.id) ===
+                        String(currentUserId)
+                );
+
+            if (user) {
+
+                document.getElementById(
+                    "chatUsername"
+                ).textContent =
+                    user.username || "User";
+            }
+
+        } catch (error) {
+
+            console.error(error);
+
+            document.getElementById(
+                "chatUsername"
+            ).textContent = "User";
+        }
+
+        loadMessages();
+    }
+
+
+    function getStorageKey() {
+
+        return "xlove-chat-" + currentUserId;
+    }
+
+
+    function loadMessages() {
+
+        const saved =
+            localStorage.getItem(
+                getStorageKey()
+            );
+
+        if (!saved) {
+            return;
+        }
+
+        const messages =
+            JSON.parse(saved);
+
+        const chatBody =
+            document.getElementById("chatBody");
+
+        const welcome =
+            document.getElementById(
+                "welcomeMessage"
+            );
+
+        if (welcome) {
+            welcome.remove();
+        }
+
+        messages.forEach(
+            message => {
+
+                addMessageToScreen(
+                    message.text,
+                    message.type
+                );
+
+            }
+        );
+
+        chatBody.scrollTop =
+            chatBody.scrollHeight;
+    }
+
+
+    function sendMessage() {
+
+        const input =
+            document.getElementById(
+                "messageInput"
+            );
+
+        const text =
+            input.value.trim();
+
+        if (!text) {
+            return;
+        }
+
+        const message = {
+            text: text,
+            type: "sent"
+        };
+
+        const storageKey =
+            getStorageKey();
+
+        const saved =
+            localStorage.getItem(
+                storageKey
+            );
+
+        const messages =
+            saved
+                ? JSON.parse(saved)
+                : [];
+
+        messages.push(message);
+
+        localStorage.setItem(
+            storageKey,
+            JSON.stringify(messages)
+        );
+
+        addMessageToScreen(
+            text,
+            "sent"
+        );
+
+        input.value = "";
+
+        const chatBody =
+            document.getElementById(
+                "chatBody"
+            );
+
+        chatBody.scrollTop =
+            chatBody.scrollHeight;
+    }
+
+
+    function addMessageToScreen(
+        text,
+        type
+    ) {
+
+        const chatBody =
+            document.getElementById(
+                "chatBody"
+            );
+
+        const welcome =
+            document.getElementById(
+                "welcomeMessage"
+            );
+
+        if (welcome) {
+            welcome.remove();
+        }
+
+        const message =
+            document.createElement("div");
+
+        message.className =
+            "message " + type;
+
+        const bubble =
+            document.createElement("div");
+
+        bubble.className =
+            "bubble";
+
+        bubble.textContent = text;
+
+        message.appendChild(bubble);
+
+        chatBody.appendChild(message);
+    }
+
+
+    document
+        .getElementById("messageInput")
+        .addEventListener(
+            "keydown",
+            function(event) {
+
+                if (
+                    event.key === "Enter"
+                ) {
+
+                    sendMessage();
+
+                }
+
+            }
+        );
+
+
+    function logout() {
+
+        localStorage.removeItem(
+            "xloveUser"
+        );
+
+        window.location.href =
+            "index.html";
+    }
+
+
+    loadChatUser();
+
+</script>
+```
 
 </body>
 </html>
-```
