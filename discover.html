@@ -123,6 +123,17 @@
             line-height: 1.5;
         }
 
+        .status {
+            text-align: center;
+            color: #6b7280;
+            padding: 30px;
+            font-size: 16px;
+        }
+
+        .error {
+            color: #dc2626;
+        }
+
         @media (max-width: 800px) {
             .profiles {
                 grid-template-columns: 1fr 1fr;
@@ -155,9 +166,9 @@
             <a href="dashboard.html">Home</a>
             <a href="profile.html">My Profile</a>
             <a href="discover.html">Discover</a>
-            <a href="#">Messages</a>
-            <a href="#">Notifications</a>
-            <a href="#">Settings</a>
+            <a href="messages.html">Messages</a>
+            <a href="notifications.html">Notifications</a>
+            <a href="settings.html">Settings</a>
         </nav>
 
         <button class="logout" onclick="logout()">
@@ -173,35 +184,102 @@
             <p>Explore profiles on XLOVE.</p>
         </div>
 
-        <div class="profiles">
-
-            <div class="profile-card">
-                <div class="avatar">A</div>
-                <h2>Alex</h2>
-                <p>Welcome to my XLOVE profile.</p>
+        <div id="profiles" class="profiles">
+            <div class="status">
+                Loading profiles...
             </div>
-
-            <div class="profile-card">
-                <div class="avatar">S</div>
-                <h2>Sarah</h2>
-                <p>Nice to meet you on XLOVE.</p>
-            </div>
-
-            <div class="profile-card">
-                <div class="avatar">J</div>
-                <h2>Jordan</h2>
-                <p>Enjoy exploring XLOVE.</p>
-            </div>
-
         </div>
 
     </main>
 
     <script>
+
+        async function loadUsers() {
+
+            const profiles =
+                document.getElementById("profiles");
+
+            try {
+
+                const response = await fetch(
+                    "https://xlove-backend.onrender.com/api/users"
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message || "Unable to load users."
+                    );
+                }
+
+                profiles.innerHTML = "";
+
+                if (!data.users || data.users.length === 0) {
+
+                    profiles.innerHTML = `
+                        <div class="status">
+                            No profiles available yet.
+                        </div>
+                    `;
+
+                    return;
+                }
+
+                data.users.forEach(user => {
+
+                    const username =
+                        user.username || "User";
+
+                    const firstLetter =
+                        username.charAt(0).toUpperCase();
+
+                    const bio =
+                        user.bio || "No bio yet.";
+
+                    const card = document.createElement("div");
+
+                    card.className = "profile-card";
+
+                    card.innerHTML = `
+                        <div class="avatar">
+                            ${firstLetter}
+                        </div>
+
+                        <h2>
+                            ${username}
+                        </h2>
+
+                        <p>
+                            ${bio}
+                        </p>
+                    `;
+
+                    profiles.appendChild(card);
+                });
+
+            } catch (error) {
+
+                console.error(error);
+
+                profiles.innerHTML = `
+                    <div class="status error">
+                        Unable to load profiles.
+                        Please try again.
+                    </div>
+                `;
+            }
+        }
+
         function logout() {
+
             localStorage.removeItem("xloveUser");
+
             window.location.href = "index.html";
         }
+
+        loadUsers();
+
     </script>
 
 </body>
