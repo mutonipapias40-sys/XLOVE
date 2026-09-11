@@ -27,9 +27,9 @@
     }
 
     .logo {
+      color: #ff3366;
       font-size: 24px;
       font-weight: bold;
-      color: #ff3366;
     }
 
     .back {
@@ -48,20 +48,19 @@
 
     .title {
       padding: 20px;
-      border-bottom: 1px solid #eee;
       font-size: 24px;
       font-weight: bold;
+      border-bottom: 1px solid #eee;
     }
 
     .conversation {
       display: flex;
       align-items: center;
       gap: 15px;
-      padding: 18px;
+      padding: 16px;
       border-bottom: 1px solid #eee;
       text-decoration: none;
       color: #222;
-      transition: background 0.2s;
     }
 
     .conversation:hover {
@@ -78,12 +77,13 @@
 
     .info {
       flex: 1;
+      min-width: 0;
     }
 
     .username {
       font-weight: bold;
       font-size: 17px;
-      margin-bottom: 5px;
+      margin-bottom: 6px;
     }
 
     .last-message {
@@ -92,7 +92,6 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 500px;
     }
 
     .time {
@@ -100,22 +99,15 @@
       font-size: 12px;
     }
 
-    .empty {
+    .loading,
+    .empty,
+    .error {
       padding: 40px 20px;
       text-align: center;
-      color: #777;
-    }
-
-    .loading {
-      padding: 40px;
-      text-align: center;
-      color: #777;
     }
 
     .error {
-      padding: 30px;
-      text-align: center;
-      color: #d00;
+      color: #d00000;
     }
   </style>
 </head>
@@ -145,19 +137,16 @@
 
 const API_URL = "https://xlove-backend.onrender.com/api";
 
-const currentUser = JSON.parse(
-  localStorage.getItem("xloveUser")
-);
+const currentUser =
+  JSON.parse(localStorage.getItem("xloveUser"));
 
-const conversationList =
+const list =
   document.getElementById("conversationList");
 
 
-/* Check login */
-
 if (!currentUser || !currentUser.id) {
 
-  conversationList.innerHTML = `
+  list.innerHTML = `
     <div class="error">
       Please login first.
     </div>
@@ -170,25 +159,75 @@ if (!currentUser || !currentUser.id) {
 }
 
 
-/* Load conversations */
-
 async function loadConversations() {
 
   try {
 
-    const response = await fetch(
-      `${API_URL}/conversations/${currentUser.id}`
-    );
+    // Get all users
+    const usersResponse =
+      await fetch(`${API_URL}/users`);
 
-    if (!response.ok) {
-      throw new Error("Failed to load conversations");
+    if (!usersResponse.ok) {
+      throw new Error("Could not load users");
     }
 
-    const messages = await response.json();
+    const users =
+      await usersResponse.json();
 
-    if (!messages || messages.length === 0) {
 
-      conversationList.innerHTML = `
+    // Check every user for a conversation
+    const conversations = [];
+
+
+    for (const user of users) {
+
+      if (Number(user.id) === Number(currentUser.id)) {
+        continue;
+      }
+
+
+      const response =
+        await fetch(
+          `${API_URL}/messages?user1=${currentUser.id}&user2=${user.id}`
+        );
+
+
+      if (!response.ok) {
+        continue;
+      }
+
+
+      const messages =
+        await response.json();
+
+
+      if (messages.length > 0) {
+
+        const lastMessage =
+          messages[messages.length - 1];
+
+
+        conversations.push({
+
+          userId: user.id,
+
+          username: user.username,
+
+          message: lastMessage.message,
+
+          createdAt: lastMessage.created_at
+
+        });
+
+      }
+
+    }
+
+
+    // No conversations
+    if (conversations.length === 0) {
+
+      list.innerHTML = `
         <div class="empty">
           <h3>No messages yet</h3>
           <p>Your conversations will appear here.</p>
@@ -199,63 +238,25 @@ async function loadConversations() {
     }
 
 
-    /* Group messages by other user */
-
-    const conversations = {};
-
-    messages.forEach(message => {
-
-      const otherUserId =
-        Number(message.sender_id) === Number(currentUser.id)
-          ? Number(message.receiver_id)
-          : Number(message.sender_id);
-
-      const otherUsername =
-        Number(message.sender_id) === Number(currentUser.id)
-          ? message.receiver_username
-          : message.sender_username;
-
-      if (!conversations[otherUserId]) {
-
-        conversations[otherUserId] = {
-          userId: otherUserId,
-          username: otherUsername,
-          lastMessage: message.message,
-          createdAt: message.created_at
-        };
-
-      } else {
-
-        conversations[otherUserId].lastMessage =
-          message.message;
-
-        conversations[otherUserId].createdAt =
-          message.created_at;
-
-      }
-
-    });
+    // Newest first
+    conversations.sort(
+      (a, b) =>
+        new Date(b.createdAt) -
+        new Date(a.createdAt)
+    );
 
 
-    /* Newest conversation first */
-
-    const conversationArray =
-      Object.values(conversations).sort(
-        (a, b) =>
-          new Date(b.createdAt) -
-          new Date(a.createdAt)
-      );
+    list.innerHTML = "";
 
 
-    conversationList.innerHTML = "";
-
-
-    conversationArray.forEach(conversation => {
+    conversations.forEach(conversation => {
 
       const item =
         document.createElement("a");
 
+
       item.className = "conversation";
+
 
       item.href =
         `messages.html?id=${conversation.userId}`;
@@ -272,11 +273,11 @@ async function loadConversations() {
         <div class="info">
 
           <div class="username">
-            ${escapeHTML(conversation.username || "User")}
+            ${escapeHTML(conversation.username)}
           </div>
 
           <div class="last-message">
-            ${escapeHTML(conversation.lastMessage || "")}
+            ${escapeHTML(conversation.message)}
           </div>
 
         </div>
@@ -288,7 +289,7 @@ async function loadConversations() {
       `;
 
 
-      conversationList.appendChild(item);
+      list.appendChild(item);
 
     });
 
@@ -297,7 +298,7 @@ async function loadConversations() {
 
     console.error(error);
 
-    conversationList.innerHTML = `
+    list.innerHTML = `
       <div class="error">
         Unable to load conversations.
         <br><br>
@@ -310,24 +311,23 @@ async function loadConversations() {
 }
 
 
-/* Prevent HTML injection */
-
 function escapeHTML(text) {
 
-  const div = document.createElement("div");
+  const div =
+    document.createElement("div");
 
-  div.textContent = text;
+  div.textContent =
+    text || "";
 
   return div.innerHTML;
 
 }
 
 
-/* Format message time */
-
 function formatTime(dateString) {
 
-  const date = new Date(dateString);
+  const date =
+    new Date(dateString);
 
   if (isNaN(date)) {
     return "";
