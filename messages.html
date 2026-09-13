@@ -109,6 +109,91 @@
     .error {
       color: #d00000;
     }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 15px 20px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .chat-header .avatar {
+      width: 45px;
+      height: 45px;
+    }
+
+    .chat-name {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .messages {
+      padding: 20px;
+      min-height: 300px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .message-row {
+      display: flex;
+      margin-bottom: 12px;
+    }
+
+    .message-row.mine {
+      justify-content: flex-end;
+    }
+
+    .bubble {
+      max-width: 75%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: #eee;
+      word-wrap: break-word;
+    }
+
+    .mine .bubble {
+      background: #ff3366;
+      color: white;
+    }
+
+    .message-time {
+      font-size: 10px;
+      margin-top: 5px;
+      opacity: 0.7;
+      text-align: right;
+    }
+
+    .composer {
+      display: flex;
+      gap: 10px;
+      padding: 15px;
+      border-top: 1px solid #eee;
+    }
+
+    .composer input {
+      flex: 1;
+      padding: 13px;
+      border: 1px solid #ddd;
+      border-radius: 25px;
+      outline: none;
+      font-size: 15px;
+    }
+
+    .composer button {
+      border: none;
+      background: #ff3366;
+      color: white;
+      padding: 0 22px;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .composer button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 
@@ -121,13 +206,13 @@
 
 <div class="container">
 
-  <div class="title">
+  <div class="title" id="pageTitle">
     Messages
   </div>
 
-  <div id="conversationList">
+  <div id="content">
     <div class="loading">
-      Loading conversations...
+      Loading...
     </div>
   </div>
 
@@ -141,17 +226,27 @@ const API_URL =
 const currentUser =
   JSON.parse(localStorage.getItem("xloveUser"));
 
-const list =
-  document.getElementById("conversationList");
+const content =
+  document.getElementById("content");
+
+const params =
+  new URLSearchParams(window.location.search);
+
+const targetId =
+  params.get("id");
 
 
 if (!currentUser || !currentUser.id) {
 
-  list.innerHTML = `
+  content.innerHTML = `
     <div class="error">
       Please login first.
     </div>
   `;
+
+} else if (targetId) {
+
+  loadChat(Number(targetId));
 
 } else {
 
@@ -160,16 +255,16 @@ if (!currentUser || !currentUser.id) {
 }
 
 
-async function loadConversations() {
+/* =========================
+   CONVERSATION
+========================= */
+
+async function loadChat(userId) {
 
   try {
 
     const usersResponse =
       await fetch(`${API_URL}/users`);
-
-    if (!usersResponse.ok) {
-      throw new Error("Users request failed");
-    }
 
     const usersData =
       await usersResponse.json();
@@ -177,22 +272,303 @@ async function loadConversations() {
     const users =
       usersData.users || [];
 
+    const targetUser =
+      users.find(user => Number(user.id) === Number(userId));
+
+    if (!targetUser) {
+
+      content.innerHTML = `
+        <div class="error">
+          User not found.
+        </div>
+      `;
+
+      return;
+    }
+
+    document.getElementById("pageTitle").textContent =
+      "Conversation";
+
+    content.innerHTML = `
+
+      <div class="chat-header">
+
+        <img
+          class="avatar"
+          src="xlove-logo.png"
+          alt="XLOVE"
+        >
+
+        <div class="chat-name">
+          ${escapeHTML(targetUser.username)}
+        </div>
+
+      </div>
+
+      <div
+        class="messages"
+        id="messagesBox"
+      >
+        <div class="loading">
+          Loading messages...
+        </div>
+      </div>
+
+      <form
+        class="composer"
+        id="messageForm"
+      >
+
+        <input
+          type="text"
+          id="messageInput"
+          placeholder="Write a message..."
+          autocomplete="off"
+          required
+        >
+
+        <button
+          type="submit"
+          id="sendButton"
+        >
+          Send
+        </button>
+
+      </form>
+    `;
+
+    await loadMessages(userId);
+
+    document
+      .getElementById("messageForm")
+      .addEventListener(
+        "submit",
+        function(event) {
+          event.preventDefault();
+          sendMessage(userId);
+        }
+      );
+
+  } catch (error) {
+
+    console.error(error);
+
+    content.innerHTML = `
+      <div class="error">
+        Unable to load conversation.
+        <br><br>
+        Please try again.
+      </div>
+    `;
+
+  }
+
+}
+
+
+/* =========================
+   LOAD MESSAGES
+========================= */
+
+async function loadMessages(userId) {
+
+  const box =
+    document.getElementById("messagesBox");
+
+  try {
+
+    const response =
+      await fetch(
+        `${API_URL}/messages?user1=${currentUser.id}&user2=${userId}`
+      );
+
+    if (!response.ok) {
+      throw new Error("Messages request failed");
+    }
+
+    const data =
+      await response.json();
+
+    const messages =
+      data.messages || [];
+
+    if (messages.length === 0) {
+
+      box.innerHTML = `
+        <div class="empty">
+          No messages yet.
+          <br>
+          Start the conversation.
+        </div>
+      `;
+
+      return;
+    }
+
+    box.innerHTML = "";
+
+    messages.forEach(message => {
+
+      const mine =
+        Number(message.sender_id) === Number(currentUser.id);
+
+      const row =
+        document.createElement("div");
+
+      row.className =
+        mine
+          ? "message-row mine"
+          : "message-row";
+
+      row.innerHTML = `
+
+        <div class="bubble">
+
+          ${escapeHTML(message.message)}
+
+          <div class="message-time">
+            ${formatTime(message.created_at)}
+          </div>
+
+        </div>
+
+      `;
+
+      box.appendChild(row);
+
+    });
+
+    box.scrollTop =
+      box.scrollHeight;
+
+  } catch (error) {
+
+    console.error(error);
+
+    box.innerHTML = `
+      <div class="error">
+        Unable to load messages.
+      </div>
+    `;
+
+  }
+
+}
+
+
+/* =========================
+   SEND MESSAGE
+========================= */
+
+async function sendMessage(userId) {
+
+  const input =
+    document.getElementById("messageInput");
+
+  const button =
+    document.getElementById("sendButton");
+
+  const message =
+    input.value.trim();
+
+  if (!message) {
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = "Sending...";
+
+  try {
+
+    const response =
+      await fetch(`${API_URL}/messages`, {
+
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+          sender_id: Number(currentUser.id),
+
+          receiver_id: Number(userId),
+
+          message: message
+
+        })
+
+      });
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+
+      throw new Error(
+        data.message || "Message failed"
+      );
+
+    }
+
+    input.value = "";
+
+    await loadMessages(userId);
+
+  } catch (error) {
+
+    console.error(error);
+
+    alert(
+      "Message could not be sent: " +
+      error.message
+    );
+
+  }
+
+  button.disabled = false;
+  button.textContent = "Send";
+
+}
+
+
+/* =========================
+   CONVERSATION LIST
+========================= */
+
+async function loadConversations() {
+
+  try {
+
+    const usersResponse =
+      await fetch(`${API_URL}/users`);
+
+    const usersData =
+      await usersResponse.json();
+
+    const users =
+      usersData.users || [];
 
     const conversations = [];
 
-
     for (const user of users) {
+
+      if (
+        Number(user.id) ===
+        Number(currentUser.id)
+      ) {
+        continue;
+      }
 
       const response =
         await fetch(
           `${API_URL}/messages?user1=${currentUser.id}&user2=${user.id}`
         );
 
-
       if (!response.ok) {
         continue;
       }
-
 
       const data =
         await response.json();
@@ -200,12 +576,10 @@ async function loadConversations() {
       const messages =
         data.messages || [];
 
-
       if (messages.length > 0) {
 
         const lastMessage =
           messages[messages.length - 1];
-
 
         conversations.push({
 
@@ -223,10 +597,9 @@ async function loadConversations() {
 
     }
 
-
     if (conversations.length === 0) {
 
-      list.innerHTML = `
+      content.innerHTML = `
         <div class="empty">
           <h3>No messages yet</h3>
           <p>Your conversations will appear here.</p>
@@ -236,16 +609,13 @@ async function loadConversations() {
       return;
     }
 
-
     conversations.sort(
       (a, b) =>
         new Date(b.createdAt) -
         new Date(a.createdAt)
     );
 
-
-    list.innerHTML = "";
-
+    content.innerHTML = "";
 
     conversations.forEach(conversation => {
 
@@ -257,7 +627,6 @@ async function loadConversations() {
 
       item.href =
         `messages.html?id=${conversation.userId}`;
-
 
       item.innerHTML = `
 
@@ -285,17 +654,15 @@ async function loadConversations() {
 
       `;
 
-
-      list.appendChild(item);
+      content.appendChild(item);
 
     });
 
-
   } catch (error) {
 
-    console.error("Conversation error:", error);
+    console.error(error);
 
-    list.innerHTML = `
+    content.innerHTML = `
       <div class="error">
         Unable to load conversations.
         <br><br>
@@ -307,6 +674,10 @@ async function loadConversations() {
 
 }
 
+
+/* =========================
+   HELPERS
+========================= */
 
 function escapeHTML(text) {
 
