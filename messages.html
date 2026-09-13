@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -128,6 +129,12 @@
       font-weight: bold;
     }
 
+    .online-status {
+      font-size: 12px;
+      color: #2eaa5b;
+      margin-top: 3px;
+    }
+
     .messages {
       padding: 20px;
       min-height: 300px;
@@ -194,7 +201,16 @@
       opacity: 0.6;
       cursor: not-allowed;
     }
+
+    .new-message-indicator {
+      text-align: center;
+      font-size: 12px;
+      color: #777;
+      padding: 5px;
+      display: none;
+    }
   </style>
+
 </head>
 
 <body>
@@ -235,6 +251,13 @@ const params =
 const targetId =
   params.get("id");
 
+let realtimeTimer = null;
+let lastMessageSignature = "";
+
+
+/* =========================
+   START PAGE
+========================= */
 
 if (!currentUser || !currentUser.id) {
 
@@ -273,7 +296,10 @@ async function loadChat(userId) {
       usersData.users || [];
 
     const targetUser =
-      users.find(user => Number(user.id) === Number(userId));
+      users.find(
+        user =>
+          Number(user.id) === Number(userId)
+      );
 
     if (!targetUser) {
 
@@ -299,8 +325,16 @@ async function loadChat(userId) {
           alt="XLOVE"
         >
 
-        <div class="chat-name">
-          ${escapeHTML(targetUser.username)}
+        <div>
+
+          <div class="chat-name">
+            ${escapeHTML(targetUser.username)}
+          </div>
+
+          <div class="online-status">
+            ● Chat
+          </div>
+
         </div>
 
       </div>
@@ -312,6 +346,13 @@ async function loadChat(userId) {
         <div class="loading">
           Loading messages...
         </div>
+      </div>
+
+      <div
+        class="new-message-indicator"
+        id="newMessageIndicator"
+      >
+        New message
       </div>
 
       <form
@@ -337,17 +378,29 @@ async function loadChat(userId) {
       </form>
     `;
 
-    await loadMessages(userId);
+    await loadMessages(userId, true);
 
     document
       .getElementById("messageForm")
       .addEventListener(
         "submit",
         function(event) {
+
           event.preventDefault();
+
           sendMessage(userId);
+
         }
       );
+
+    /*
+      REAL-TIME CHECK
+
+      Buri masegonda 2 tureba
+      niba hari message nshya.
+    */
+
+    startRealtimeChat(userId);
 
   } catch (error) {
 
@@ -367,23 +420,80 @@ async function loadChat(userId) {
 
 
 /* =========================
+   REAL-TIME CHAT
+========================= */
+
+function startRealtimeChat(userId) {
+
+  stopRealtimeChat();
+
+  realtimeTimer =
+    setInterval(
+      async function() {
+
+        await loadMessages(
+          userId,
+          false
+        );
+
+      },
+      2000
+    );
+
+}
+
+
+/* =========================
+   STOP REAL-TIME
+========================= */
+
+function stopRealtimeChat() {
+
+  if (realtimeTimer) {
+
+    clearInterval(
+      realtimeTimer
+    );
+
+    realtimeTimer = null;
+
+  }
+
+}
+
+
+/* =========================
    LOAD MESSAGES
 ========================= */
 
-async function loadMessages(userId) {
+async function loadMessages(
+  userId,
+  firstLoad = false
+) {
 
   const box =
     document.getElementById("messagesBox");
+
+  if (!box) {
+    return;
+  }
 
   try {
 
     const response =
       await fetch(
-        `${API_URL}/messages?user1=${currentUser.id}&user2=${userId}`
+        `${API_URL}/messages?user1=${currentUser.id}&user2=${userId}`,
+        {
+          cache: "no-store"
+        }
       );
 
     if (!response.ok) {
-      throw new Error("Messages request failed");
+
+      throw new Error(
+        "Messages request failed"
+      );
+
     }
 
     const data =
@@ -391,6 +501,48 @@ async function loadMessages(userId) {
 
     const messages =
       data.messages || [];
+
+    /*
+      Create a signature from the latest message.
+      This lets us detect new messages.
+    */
+
+    const latestMessage =
+      messages.length > 0
+        ? messages[messages.length - 1]
+        : null;
+
+    const newSignature =
+      latestMessage
+        ? String(
+            latestMessage.id ||
+            latestMessage.created_at ||
+            latestMessage.message
+          )
+        : "empty";
+
+    /*
+      Nothing changed.
+      Do not redraw the chat.
+    */
+
+    if (
+      !firstLoad &&
+      newSignature === lastMessageSignature
+    ) {
+
+      return;
+
+    }
+
+    const wasAtBottom =
+      box.scrollHeight -
+      box.scrollTop -
+      box.clientHeight <
+      80;
+
+    lastMessageSignature =
+      newSignature;
 
     if (messages.length === 0) {
 
@@ -403,53 +555,83 @@ async function loadMessages(userId) {
       `;
 
       return;
+
     }
 
     box.innerHTML = "";
 
-    messages.forEach(message => {
+    messages.forEach(
+      function(message) {
 
-      const mine =
-        Number(message.sender_id) === Number(currentUser.id);
+        const mine =
+          Number(message.sender_id) ===
+          Number(currentUser.id);
 
-      const row =
-        document.createElement("div");
+        const row =
+          document.createElement("div");
 
-      row.className =
-        mine
-          ? "message-row mine"
-          : "message-row";
+        row.className =
+          mine
+            ? "message-row mine"
+            : "message-row";
 
-      row.innerHTML = `
+        row.innerHTML = `
 
-        <div class="bubble">
+          <div class="bubble">
 
-          ${escapeHTML(message.message)}
+            ${escapeHTML(message.message)}
 
-          <div class="message-time">
-            ${formatTime(message.created_at)}
+            <div class="message-time">
+              ${formatTime(
+                message.created_at
+              )}
+            </div>
+
           </div>
 
-        </div>
+        `;
 
-      `;
+        box.appendChild(row);
 
-      box.appendChild(row);
+      }
+    );
 
-    });
+    /*
+      First load:
+      go directly to bottom.
+    */
 
-    box.scrollTop =
-      box.scrollHeight;
+    if (
+      firstLoad ||
+      wasAtBottom
+    ) {
+
+      box.scrollTop =
+        box.scrollHeight;
+
+    } else {
+
+      /*
+        If user is reading older
+        messages, don't force scroll.
+      */
+
+      showNewMessageIndicator();
+
+    }
 
   } catch (error) {
 
-    console.error(error);
+    console.error(
+      "Realtime message error:",
+      error
+    );
 
-    box.innerHTML = `
-      <div class="error">
-        Unable to load messages.
-      </div>
-    `;
+    /*
+      Don't destroy the current
+      messages if a temporary
+      network error happens.
+    */
 
   }
 
@@ -463,10 +645,14 @@ async function loadMessages(userId) {
 async function sendMessage(userId) {
 
   const input =
-    document.getElementById("messageInput");
+    document.getElementById(
+      "messageInput"
+    );
 
   const button =
-    document.getElementById("sendButton");
+    document.getElementById(
+      "sendButton"
+    );
 
   const message =
     input.value.trim();
@@ -475,31 +661,41 @@ async function sendMessage(userId) {
     return;
   }
 
-  button.disabled = true;
-  button.textContent = "Sending...";
+  button.disabled =
+    true;
+
+  button.textContent =
+    "Sending...";
 
   try {
 
     const response =
-      await fetch(`${API_URL}/messages`, {
+      await fetch(
+        `${API_URL}/messages`,
+        {
 
-        method: "POST",
+          method: "POST",
 
-        headers: {
-          "Content-Type": "application/json"
-        },
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
 
-        body: JSON.stringify({
+          body: JSON.stringify({
 
-          sender_id: Number(currentUser.id),
+            sender_id:
+              Number(currentUser.id),
 
-          receiver_id: Number(userId),
+            receiver_id:
+              Number(userId),
 
-          message: message
+            message:
+              message
 
-        })
+          })
 
-      });
+        }
+      );
 
     const data =
       await response.json();
@@ -507,14 +703,23 @@ async function sendMessage(userId) {
     if (!response.ok) {
 
       throw new Error(
-        data.message || "Message failed"
+        data.message ||
+        "Message failed"
       );
 
     }
 
     input.value = "";
 
-    await loadMessages(userId);
+    /*
+      Load immediately instead
+      of waiting 2 seconds.
+    */
+
+    await loadMessages(
+      userId,
+      false
+    );
 
   } catch (error) {
 
@@ -527,8 +732,11 @@ async function sendMessage(userId) {
 
   }
 
-  button.disabled = false;
-  button.textContent = "Send";
+  button.disabled =
+    false;
+
+  button.textContent =
+    "Send";
 
 }
 
@@ -542,7 +750,9 @@ async function loadConversations() {
   try {
 
     const usersResponse =
-      await fetch(`${API_URL}/users`);
+      await fetch(
+        `${API_URL}/users`
+      );
 
     const usersData =
       await usersResponse.json();
@@ -552,13 +762,17 @@ async function loadConversations() {
 
     const conversations = [];
 
-    for (const user of users) {
+    for (
+      const user of users
+    ) {
 
       if (
         Number(user.id) ===
         Number(currentUser.id)
       ) {
+
         continue;
+
       }
 
       const response =
@@ -576,20 +790,28 @@ async function loadConversations() {
       const messages =
         data.messages || [];
 
-      if (messages.length > 0) {
+      if (
+        messages.length > 0
+      ) {
 
         const lastMessage =
-          messages[messages.length - 1];
+          messages[
+            messages.length - 1
+          ];
 
         conversations.push({
 
-          userId: user.id,
+          userId:
+            user.id,
 
-          username: user.username,
+          username:
+            user.username,
 
-          message: lastMessage.message,
+          message:
+            lastMessage.message,
 
-          createdAt: lastMessage.created_at
+          createdAt:
+            lastMessage.created_at
 
         });
 
@@ -597,66 +819,85 @@ async function loadConversations() {
 
     }
 
-    if (conversations.length === 0) {
+    if (
+      conversations.length === 0
+    ) {
 
       content.innerHTML = `
         <div class="empty">
           <h3>No messages yet</h3>
-          <p>Your conversations will appear here.</p>
+          <p>
+            Your conversations will appear here.
+          </p>
         </div>
       `;
 
       return;
+
     }
 
     conversations.sort(
       (a, b) =>
-        new Date(b.createdAt) -
-        new Date(a.createdAt)
+        new Date(
+          b.createdAt
+        ) -
+        new Date(
+          a.createdAt
+        )
     );
 
     content.innerHTML = "";
 
-    conversations.forEach(conversation => {
+    conversations.forEach(
+      function(conversation) {
 
-      const item =
-        document.createElement("a");
+        const item =
+          document.createElement("a");
 
-      item.className =
-        "conversation";
+        item.className =
+          "conversation";
 
-      item.href =
-        `messages.html?id=${conversation.userId}`;
+        item.href =
+          `messages.html?id=${conversation.userId}`;
 
-      item.innerHTML = `
+        item.innerHTML = `
 
-        <img
-          class="avatar"
-          src="xlove-logo.png"
-          alt="XLOVE"
-        >
+          <img
+            class="avatar"
+            src="xlove-logo.png"
+            alt="XLOVE"
+          >
 
-        <div class="info">
+          <div class="info">
 
-          <div class="username">
-            ${escapeHTML(conversation.username)}
+            <div class="username">
+              ${escapeHTML(
+                conversation.username
+              )}
+            </div>
+
+            <div class="last-message">
+              ${escapeHTML(
+                conversation.message
+              )}
+            </div>
+
           </div>
 
-          <div class="last-message">
-            ${escapeHTML(conversation.message)}
+          <div class="time">
+            ${formatTime(
+              conversation.createdAt
+            )}
           </div>
 
-        </div>
+        `;
 
-        <div class="time">
-          ${formatTime(conversation.createdAt)}
-        </div>
+        content.appendChild(
+          item
+        );
 
-      `;
-
-      content.appendChild(item);
-
-    });
+      }
+    );
 
   } catch (error) {
 
@@ -676,13 +917,46 @@ async function loadConversations() {
 
 
 /* =========================
+   NEW MESSAGE INDICATOR
+========================= */
+
+function showNewMessageIndicator() {
+
+  const indicator =
+    document.getElementById(
+      "newMessageIndicator"
+    );
+
+  if (!indicator) {
+    return;
+  }
+
+  indicator.style.display =
+    "block";
+
+  setTimeout(
+    function() {
+
+      indicator.style.display =
+        "none";
+
+    },
+    2000
+  );
+
+}
+
+
+/* =========================
    HELPERS
 ========================= */
 
 function escapeHTML(text) {
 
   const div =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
 
   div.textContent =
     text || "";
@@ -692,21 +966,46 @@ function escapeHTML(text) {
 }
 
 
-function formatTime(dateString) {
+function formatTime(
+  dateString
+) {
 
   const date =
-    new Date(dateString);
+    new Date(
+      dateString
+    );
 
-  if (isNaN(date)) {
+  if (
+    isNaN(date)
+  ) {
+
     return "";
+
   }
 
-  return date.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  return date.toLocaleTimeString(
+    [],
+    {
+      hour: "2-digit",
+      minute: "2-digit"
+    }
+  );
 
 }
+
+
+/* =========================
+   CLEAN UP
+========================= */
+
+window.addEventListener(
+  "beforeunload",
+  function() {
+
+    stopRealtimeChat();
+
+  }
+);
 
 </script>
 
