@@ -17,6 +17,7 @@
         body {
             min-height: 100vh;
             background: linear-gradient(135deg, #fff, #fff0f6);
+            color: #111827;
         }
 
         header {
@@ -108,7 +109,8 @@
             line-height: 1.5;
         }
 
-        .profile-link {
+        .profile-link,
+        .notification-link {
             display: inline-block;
             margin-top: 12px;
             padding: 10px 18px;
@@ -117,6 +119,11 @@
             text-decoration: none;
             border-radius: 20px;
             font-weight: bold;
+        }
+
+        .notification-link {
+            background: #374151;
+            margin-left: 8px;
         }
 
         @media (max-width: 700px) {
@@ -131,76 +138,99 @@
             .settings-card {
                 padding: 25px 20px;
             }
+
+            .notification-link {
+                margin-left: 0;
+                margin-top: 10px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <header>
+<header>
 
-        <div class="logo">XLOVE</div>
+    <div class="logo">XLOVE</div>
 
-        <nav>
-            <a href="dashboard.html">Home</a>
-            <a href="profile.html">My Profile</a>
-            <a href="discover.html">Discover</a>
-            <a href="messages.html">Messages</a>
-            <a href="notifications.html">Notifications</a>
-            <a href="settings.html">Settings</a>
-        </nav>
+    <nav>
+        <a href="dashboard.html">Home</a>
+        <a href="profile.html">My Profile</a>
+        <a href="discover.html">Discover</a>
+        <a href="messages.html">Messages</a>
+        <a href="notifications.html">Notifications</a>
+        <a href="settings.html">Settings</a>
+    </nav>
 
-        <button class="logout" onclick="logout()">
-            Log Out
-        </button>
+    <button class="logout" onclick="logout()">
+        Log Out
+    </button>
 
-    </header>
+</header>
 
-    <main>
+<main>
 
-        <div class="settings-card">
+    <div class="settings-card">
 
-            <h1>Settings</h1>
+        <h1>Settings</h1>
 
-            <p class="subtitle">
-                Manage your XLOVE account settings.
+        <p class="subtitle">
+            Manage your XLOVE account settings.
+        </p>
+
+        <div class="setting-item">
+
+            <h2>Account</h2>
+
+            <p>
+                Manage your profile information and account details.
             </p>
 
-            <div class="setting-item">
-                <h2>Account</h2>
-                <p>
-                    Manage your profile information and account details.
-                </p>
-
-                <a href="profile.html" class="profile-link">
-                    My Profile
-                </a>
-            </div>
-
-            <div class="setting-item">
-                <h2>Privacy</h2>
-                <p>
-                    Privacy controls will be available here.
-                </p>
-            </div>
-
-            <div class="setting-item">
-                <h2>Notifications</h2>
-                <p>
-                    Notification preferences will be available here.
-                </p>
-            </div>
+            <a href="profile.html" class="profile-link">
+                My Profile
+            </a>
 
         </div>
 
-    </main>
+        <div class="setting-item">
 
-    <script>
-        function logout() {
-            localStorage.removeItem("xloveUser");
-            window.location.href = "index.html";
-        }
-    </script>
+            <h2>Privacy</h2>
+
+            <p>
+                Privacy controls will be available here.
+            </p>
+
+        </div>
+
+        <div class="setting-item">
+
+            <h2>Notifications</h2>
+
+            <p>
+                Manage your notification preferences.
+            </p>
+
+            <a href="notifications.html" class="notification-link">
+                Notifications
+            </a>
+
+        </div>
+
+    </div>
+
+</main>
+
+<script>
+
+function logout() {
+
+    localStorage.removeItem("xloveUser");
+
+    window.location.href = "index.html";
+
+}
+
+</script>
 
 </body>
 </html>
