@@ -1,214 +1,290 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile - XLOVE</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Profile - XLOVE</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        body {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #fff, #fff0f6);
-        }
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+    }
 
-        header {
-            background: white;
-            padding: 18px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
-        }
+    header {
+      background: #111;
+      color: white;
+      padding: 18px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
 
-        .logo {
-            font-size: 30px;
-            font-weight: bold;
-            color: #ff2d75;
-        }
+    .logo {
+      font-size: 26px;
+      font-weight: bold;
+    }
 
-        .back {
-            color: #ff2d75;
-            text-decoration: none;
-            font-weight: bold;
-        }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
 
-        main {
-            max-width: 650px;
-            margin: 50px auto;
-            padding: 20px;
-        }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-size: 14px;
+    }
 
-        .profile-card {
-            background: white;
-            padding: 40px 30px;
-            border-radius: 25px;
-            text-align: center;
-            box-shadow: 0 10px 35px rgba(0,0,0,0.08);
-        }
+    nav a:hover {
+      text-decoration: underline;
+    }
 
-        .avatar {
-            width: 110px;
-            height: 110px;
-            margin: 0 auto 20px;
-            border-radius: 50%;
-            background: #ff2d75;
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 42px;
-            font-weight: bold;
-        }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+    }
 
-        h1 {
-            color: #111827;
-            margin-bottom: 8px;
-        }
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    }
 
-        .email {
-            color: #6b7280;
-            margin-bottom: 30px;
-        }
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
 
-        .info {
-            text-align: left;
-            border-top: 1px solid #eee;
-            padding-top: 25px;
-        }
+    .avatar {
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto 20px;
+      border: 3px solid #111;
+    }
 
-        .info-item {
-            margin-bottom: 20px;
-        }
+    label {
+      display: block;
+      margin-top: 18px;
+      margin-bottom: 7px;
+      font-weight: bold;
+    }
 
-        .label {
-            color: #6b7280;
-            font-size: 13px;
-            margin-bottom: 5px;
-        }
+    input,
+    textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 16px;
+    }
 
-        .value {
-            color: #111827;
-            font-size: 17px;
-            font-weight: bold;
-        }
+    textarea {
+      min-height: 120px;
+      resize: vertical;
+    }
 
-        .logout {
-            margin-top: 25px;
-            width: 100%;
-            padding: 14px;
-            border: none;
-            border-radius: 25px;
-            background: #ff2d75;
-            color: white;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+    button {
+      width: 100%;
+      margin-top: 25px;
+      padding: 13px;
+      border: none;
+      border-radius: 8px;
+      background: #111;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
 
-        .logout:hover {
-            background: #e52265;
-        }
-    </style>
+    button:hover {
+      background: #333;
+    }
+
+    #status {
+      text-align: center;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 
 <body>
 
-    <header>
-        <div class="logo">XLOVE</div>
+<header>
+  <div class="logo">XLOVE</div>
 
-        <a href="dashboard.html" class="back">
-            ← Dashboard
-        </a>
-    </header>
+  <nav>
+    <a href="dashboard.html">Home</a>
+    <a href="profile.html">My Profile</a>
+    <a href="discover.html">Discover</a>
+    <a href="messages.html">Messages</a>
+    <a href="notifications.html">Notifications</a>
+    <a href="settings.html">Settings</a>
+  </nav>
+</header>
 
-    <main>
+<div class="container">
 
-        <div class="profile-card">
+  <div class="card">
 
-            <div class="avatar" id="avatar">
-                U
-            </div>
+    <h1>My Profile</h1>
 
-            <h1 id="username">
-                User
-            </h1>
+    <img src="xlove-logo.png" class="avatar" alt="XLOVE Profile">
 
-            <p class="email" id="email">
-                user@example.com
-            </p>
+    <label for="username">Username</label>
+    <input type="text" id="username" placeholder="Enter username">
 
-            <div class="info">
+    <label for="bio">Bio</label>
+    <textarea id="bio" placeholder="Tell people about yourself"></textarea>
 
-                <div class="info-item">
-                    <div class="label">Username</div>
-                    <div class="value" id="usernameInfo">
-                        User
-                    </div>
-                </div>
-                
-                <div class="info-item">
-                    <div class="label">Email</div>
-                    <div class="value" id="emailInfo">
-                        user@example.com
-                    </div>
-                </div>
-<div class="info-item">
-    <div class="label">Bio</div>
-    <div class="value" id="bioInfo">
-        No bio yet.
-    </div>
+    <button onclick="saveProfile()">Save Changes</button>
+
+    <div id="status"></div>
+
+  </div>
+
 </div>
-            </div>
-            <a href="edit-profile.html" class="edit-profile">
-    Edit Profile
-</a>
 
-            <button class="logout" onclick="logout()">
-                Log Out
-            </button>
+<script>
 
-        </div>
+const API_URL = "https://xlove-backend.onrender.com/api";
 
-    </main>
+const savedUser = localStorage.getItem("xloveUser");
 
-    <script>
-        const user = JSON.parse(
-            localStorage.getItem("xloveUser")
-        );
+if (!savedUser) {
+  window.location.href = "index.html";
+}
 
-        if (!user) {
-            window.location.href = "login.html";
-        } else {
+let currentUser;
 
-            document.getElementById("username").textContent =
-                user.username;
+try {
+  currentUser = JSON.parse(savedUser);
+} catch (error) {
+  localStorage.removeItem("xloveUser");
+  window.location.href = "index.html";
+}
 
-            document.getElementById("email").textContent =
-                user.email;
+async function loadProfile() {
 
-            document.getElementById("usernameInfo").textContent =
-                user.username;
+  try {
 
-            document.getElementById("emailInfo").textContent =
-                user.email;
-document.getElementById("bioInfo").textContent =
-    user.bio || "No bio yet.";
-            document.getElementById("avatar").textContent =
-                user.username.charAt(0).toUpperCase();
-        }
+    const response = await fetch(`${API_URL}/users`);
 
-        function logout() {
-            localStorage.removeItem("xloveUser");
-            window.location.href = "index.html";
-        }
-    </script>
+    const data = await response.json();
+
+    const users = data.users || [];
+
+    const user = users.find(
+      u => Number(u.id) === Number(currentUser.id)
+    );
+
+    if (!user) {
+      document.getElementById("status").textContent =
+        "Profile not found.";
+      return;
+    }
+
+    document.getElementById("username").value =
+      user.username || "";
+
+    document.getElementById("bio").value =
+      user.bio || "";
+
+  } catch (error) {
+
+    console.error(error);
+
+    document.getElementById("status").textContent =
+      "Unable to load profile.";
+
+  }
+
+}
+
+async function saveProfile() {
+
+  const username =
+    document.getElementById("username").value.trim();
+
+  const bio =
+    document.getElementById("bio").value.trim();
+
+  const status =
+    document.getElementById("status");
+
+  if (!username) {
+    status.textContent = "Username is required.";
+    return;
+  }
+
+  status.textContent = "Saving...";
+
+  try {
+
+    const response = await fetch(`${API_URL}/profile`, {
+
+      method: "PUT",
+
+      headers: {
+        "Content-Type": "application/json"
+      },
+
+      body: JSON.stringify({
+        id: currentUser.id,
+        username: username,
+        bio: bio
+      })
+
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      status.textContent =
+        data.message || "Unable to save profile.";
+      return;
+    }
+
+    currentUser.username = username;
+    currentUser.bio = bio;
+
+    localStorage.setItem(
+      "xloveUser",
+      JSON.stringify(currentUser)
+    );
+
+    status.textContent =
+      "Profile updated successfully!";
+
+  } catch (error) {
+
+    console.error(error);
+
+    status.textContent =
+      "Unable to save profile.";
+
+  }
+
+}
+
+loadProfile();
+
+</script>
 
 </body>
 </html>
